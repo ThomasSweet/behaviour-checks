@@ -4,7 +4,7 @@ Notable changes to `@accessible-by-default/checks`. Versions follow
 [Semantic Versioning](https://semver.org). While the version starts with 0,
 a minor release can change what a check reports.
 
-## 0.1.0 (unreleased)
+## 0.1.0 (2026-10-28)
 
 - Three checks, each as a Playwright matcher and as a function that returns
   findings: expanded state against what is visible
