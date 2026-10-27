@@ -1,5 +1,10 @@
 # @accessible-by-default/checks
 
+[![CI status](https://github.com/ThomasSweet/behaviour-checks/actions/workflows/ci.yml/badge.svg)](https://github.com/ThomasSweet/behaviour-checks/actions/workflows/ci.yml)
+[![Playwright 1.64 or later](https://img.shields.io/badge/Playwright-1.64_or_later-2563eb)](https://playwright.dev)
+[![Tested in Chromium, Firefox and WebKit](https://img.shields.io/badge/tested_in-Chromium_%C2%B7_Firefox_%C2%B7_WebKit-16a34a)](#engine-notes)
+[![License: MIT](https://img.shields.io/badge/license-MIT-8a8a8a)](./LICENSE)
+
 Playwright matchers that operate a page's widgets by keyboard, in Chromium,
 Firefox and WebKit, and check that they behave as they claim:
 
@@ -25,8 +30,12 @@ npm install --save-dev @accessible-by-default/checks
 ```
 
 It is tested with `@playwright/test` 1.64.1 and supports 1.64 or later. It
-needs Node 20.19 or later, the first Node 20 release that can `require` an ES
-module; Node 20 itself is past its end of life.
+needs Node 20.19 or later in the 20 line, or 22.12 or later: the first
+releases that can `require()` an ES module, which a test file compiled to
+CommonJS does. Node 20 itself is past its end of life. Every pull request
+installs the packed package in a new project, on Node 20.19, 22.12 and 24
+with Playwright 1.64.0 and on Node 26 with the latest Playwright, and runs the
+matchers from CommonJS and from an ES module.
 
 ## Use
 
@@ -235,14 +244,14 @@ is an error and not a hint: a field described only by a hint passes.
 ## Engine notes
 
 Measured on 27 October 2026 on macOS with Playwright 1.64.1, which runs
-Chromium 156, Firefox 157 and WebKit 27.2. Playwright's WebKit is not Safari,
+Chromium 156, Firefox 157 and WebKit 27.2. The fixture tests give the same
+findings on Ubuntu, in this repository's CI. Playwright's WebKit is not Safari,
 and its Firefox has no browser toolbar, so none of this is a claim about a
 browser someone uses.
 
 - **WebKit's Tab reaches only text fields and selects on macOS**, and skips
   buttons, links and checkboxes, as Safari does by default. The walk presses
-  Alt+Tab there, as Option+Tab does in Safari. WebKit on Linux was not
-  measured.
+  Alt+Tab in WebKit on every platform, as Option+Tab does in Safari.
 - **Each engine handles the edge of a modal differently.** None of them lets
   focus reach the page behind a `showModal()` dialog or an inert page.
 
@@ -289,9 +298,16 @@ found no open-source package that compares expanded state with its target
 after pressing it, walks Tab and Shift+Tab through a modal, or checks that
 visible errors are tied to their fields.
 
+## Contributing
+
+A check that got a page wrong is the most useful report, with the smallest
+page that shows it. [CONTRIBUTING.md](CONTRIBUTING.md) explains the setup and
+the rules for a change, and [CHANGELOG.md](CHANGELOG.md) lists what changed.
+Security problems go to [SECURITY.md](SECURITY.md).
+
 Made by Thomas Sweet, alongside
 [accessible-by-default.dev](https://accessible-by-default.dev).
 
 ## Licence
 
-MIT
+[MIT](LICENSE)

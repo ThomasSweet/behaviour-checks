@@ -1,0 +1,68 @@
+name: A check got it wrong
+description: It flagged something that is fine, missed a real problem, or changed the page and did not put it back.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you. A wrong result with a page that shows it is the most useful report this project gets.
+  - type: dropdown
+    id: check
+    attributes:
+      label: Which check?
+      options:
+        - Expanded state (toHaveTruthfulExpandedState)
+        - Modal dialog (toOpenADialogThatHoldsFocus)
+        - Errors tied to fields (toHaveErrorsTiedToFields)
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What went wrong?
+      options:
+        - It reported a problem that is not one
+        - It missed a real problem
+        - It changed the page and did not put it back
+        - It crashed or timed out
+    validations:
+      required: true
+  - type: textarea
+    id: finding
+    attributes:
+      label: What it reported
+      description: The matcher's failure message, or the finding as JSON.
+      render: text
+  - type: textarea
+    id: page
+    attributes:
+      label: A page that shows it
+      description: The smallest HTML that shows the problem, or a public URL.
+      render: html
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: And, if you know it, what a screen reader or keyboard user meets on that page.
+    validations:
+      required: true
+  - type: dropdown
+    id: engines
+    attributes:
+      label: Engines where it happens
+      multiple: true
+      options:
+        - Chromium
+        - Firefox
+        - WebKit
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      placeholder: e.g. checks 0.1.0, @playwright/test 1.64.1, Node 24, Ubuntu 24.04
+    validations:
+      required: true

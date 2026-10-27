@@ -4,7 +4,12 @@
   "description": "Playwright matchers that operate a page's widgets by keyboard in Chromium, Firefox and WebKit and check they behave as they claim: expanded state, modal focus, and errors tied to their fields.",
   "license": "MIT",
   "author": "Thomas Sweet",
-  "homepage": "https://accessible-by-default.dev",
+  "homepage": "https://github.com/ThomasSweet/behaviour-checks#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ThomasSweet/behaviour-checks.git"
+  },
+  "bugs": "https://github.com/ThomasSweet/behaviour-checks/issues",
   "type": "module",
   "exports": {
     ".": {
@@ -26,7 +31,10 @@
     "focus"
   ],
   "engines": {
-    "node": ">=20.19"
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "devEngines": {
     "packageManager": {
@@ -40,7 +48,8 @@
     "prepack": "npm run build",
     "typecheck": "tsc",
     "test": "playwright test",
-    "test:site": "SITE_DIR=../a11y-foundation playwright test tests/site.spec.ts"
+    "test:site": "SITE_DIR=../a11y-foundation playwright test tests/site.spec.ts",
+    "check:package": "node scripts/check-package.mjs"
   },
   "peerDependencies": {
     "@playwright/test": ">=1.64.0"
