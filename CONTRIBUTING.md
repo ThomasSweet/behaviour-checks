@@ -52,6 +52,20 @@ tests in it after a change.
 
 Commit messages start with `feat:`, `fix:`, `docs:` or `chore:`.
 
+## Releasing
+
+Releases are published by the Release workflow, never from a laptop.
+
+1. In a pull request, set the version with
+   `npm version <version> --no-git-tag-version` and date its section in
+   `CHANGELOG.md`.
+2. After it merges, create a GitHub release whose tag is the version with a
+   `v` in front, such as `v0.1.1`.
+3. The Release workflow runs every CI check on that tag, stops if the tag and
+   `package.json` disagree, and publishes to npm through trusted publishing.
+   npm adds a provenance statement that links the version to its commit and
+   workflow run.
+
 ## Conduct
 
 This project follows its [code of conduct](CODE_OF_CONDUCT.md).

@@ -4,6 +4,12 @@ Notable changes to `@accessible-by-default/checks`. Versions follow
 [Semantic Versioning](https://semver.org). While the version starts with 0,
 a minor release can change what a check reports.
 
+## 0.1.1 (2026-10-28)
+
+- Published from GitHub Actions through npm trusted publishing, with a
+  provenance statement that links the package to the commit and workflow run
+  that built it. The checks themselves have not changed.
+
 ## 0.1.0 (2026-10-27)
 
 - Three checks, each as a Playwright matcher and as a function that returns
