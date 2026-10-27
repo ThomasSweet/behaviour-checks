@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: an aria-modal dialog with an inert page</title>
+  </head>
+  <body>
+    <div id="page">
+      <main>
+        <h1>An aria-modal dialog</h1>
+        <a href="#before">A link before</a>
+        <button id="open" aria-haspopup="dialog" aria-controls="custom">Open the custom dialog</button>
+        <a href="#after">A link after</a>
+      </main>
+    </div>
+    <div id="custom" role="dialog" aria-modal="true" aria-labelledby="custom-title" hidden>
+      <h2 id="custom-title">Custom dialog</h2>
+      <button id="custom-ok">OK</button>
+      <button id="custom-close">Close</button>
+    </div>
+    <script>
+      const page = document.getElementById('page')
+      const dialog = document.getElementById('custom')
+      const opener = document.getElementById('open')
+      const close = () => {
+        dialog.hidden = true
+        page.inert = false
+        opener.focus()
+      }
+      opener.addEventListener('click', () => {
+        dialog.hidden = false
+        page.inert = true
+        document.getElementById('custom-ok').focus()
+      })
+      document.getElementById('custom-close').addEventListener('click', close)
+      dialog.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') close()
+      })
+    </script>
+  </body>
+</html>

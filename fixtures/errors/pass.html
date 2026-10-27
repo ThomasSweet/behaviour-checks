@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Errors tied to fields: passing</title>
+    <style>
+      .field-error-label {
+        color: darkred;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Errors tied to their fields</h1>
+
+      <form id="scripted" novalidate>
+        <div id="scripted-summary" class="error-summary" role="alert" hidden>
+          <h2>There is a problem</h2>
+          <ul>
+            <li><a href="#email">Enter an email address</a></li>
+            <li><a href="#plan">Choose a plan</a></li>
+          </ul>
+        </div>
+        <div class="field">
+          <label for="email" class="field-error-label">Email</label>
+          <p id="email-error" class="error" hidden></p>
+          <input id="email" name="email" type="email" aria-describedby="email-error" />
+        </div>
+        <fieldset id="plan" aria-describedby="plan-error">
+          <legend>Plan</legend>
+          <p id="plan-error" class="error" hidden></p>
+          <label><input type="radio" name="plan" value="small" /> Small</label>
+          <label><input type="radio" name="plan" value="large" /> Large</label>
+        </fieldset>
+        <button id="scripted-submit">Send</button>
+      </form>
+
+      <form id="native">
+        <label for="native-name">Name</label>
+        <input id="native-name" name="native-name" required />
+        <button id="native-submit">Send</button>
+      </form>
+    </main>
+    <script>
+      document.getElementById('scripted').addEventListener('submit', (event) => {
+        event.preventDefault()
+        const email = document.getElementById('email')
+        const emailError = document.getElementById('email-error')
+        const planError = document.getElementById('plan-error')
+        email.setAttribute('aria-invalid', 'true')
+        emailError.textContent = 'Enter an email address'
+        emailError.hidden = false
+        for (const radio of document.querySelectorAll('[name="plan"]')) radio.setAttribute('aria-invalid', 'true')
+        planError.textContent = 'Choose a plan'
+        planError.hidden = false
+        document.getElementById('scripted-summary').hidden = false
+      })
+    </script>
+  </body>
+</html>

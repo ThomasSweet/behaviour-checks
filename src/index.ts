@@ -1,0 +1,5 @@
+export { findExpandedStateMismatches, type ExpandedStateOptions } from './expanded-state.js'
+export { walkModal, type ModalWalkOptions } from './modal-walk.js'
+export { findUntiedErrors, type ErrorAssociationOptions } from './error-association.js'
+export { expect, matchers, type MatcherOptions } from './matchers.js'
+export type { CheckContext, CheckName, Finding, FoundElement, Severity } from './types.js'

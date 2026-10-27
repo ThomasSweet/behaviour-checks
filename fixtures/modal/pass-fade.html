@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a dialog that fades out</title>
+    <style>
+      #fading {
+        position: fixed;
+        inset: 20% 30%;
+        background: white;
+        visibility: hidden;
+        opacity: 0;
+        transition:
+          opacity 0.2s,
+          visibility 0s 0.2s;
+      }
+
+      #fading.is-open {
+        visibility: visible;
+        opacity: 1;
+        transition:
+          opacity 0.2s,
+          visibility 0s;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="page">
+      <main>
+        <h1>A dialog that fades out instead of hiding</h1>
+        <a href="#before">A link before</a>
+        <button id="open">Open the fading dialog</button>
+        <a href="#after">A link after</a>
+      </main>
+    </div>
+    <div id="fading" role="dialog" aria-modal="true" aria-labelledby="fading-title">
+      <h2 id="fading-title">Fading dialog</h2>
+      <button id="fading-ok">OK</button>
+      <button id="fading-close">Close</button>
+    </div>
+    <script>
+      const page = document.getElementById('page')
+      const dialog = document.getElementById('fading')
+      const opener = document.getElementById('open')
+      const close = () => {
+        dialog.classList.remove('is-open')
+        page.inert = false
+        opener.focus()
+      }
+      opener.addEventListener('click', () => {
+        dialog.classList.add('is-open')
+        page.inert = true
+        document.getElementById('fading-ok').focus()
+      })
+      document.getElementById('fading-close').addEventListener('click', close)
+      dialog.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') close()
+      })
+    </script>
+  </body>
+</html>

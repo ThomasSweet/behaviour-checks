@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a popover dressed as a modal</title>
+    <style>
+      #fake {
+        inset: 0;
+        margin: auto;
+        inline-size: 20rem;
+        block-size: fit-content;
+      }
+
+      #fake::backdrop {
+        background: rgb(0 0 0 / 50%);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>A popover dressed as a modal</h1>
+      <a href="#before">A link before</a>
+      <button id="open" popovertarget="fake">Open the settings</button>
+      <div id="fake" popover role="dialog" aria-labelledby="fake-title">
+        <h2 id="fake-title">Settings</h2>
+        <button>Save</button>
+        <button popovertarget="fake" popovertargetaction="hide">Close</button>
+      </div>
+      <a href="#after" id="after">A link after</a>
+    </main>
+  </body>
+</html>

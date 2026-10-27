@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expanded state: passing</title>
+    <style>
+      .accordion-panel {
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.2s;
+      }
+
+      .accordion-panel.is-open {
+        max-height: 10rem;
+      }
+
+      .fade-panel {
+        visibility: hidden;
+        opacity: 0;
+        transition:
+          opacity 0.2s,
+          visibility 0.2s;
+      }
+
+      .fade-panel.is-open {
+        visibility: visible;
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Expanded state that tells the truth</h1>
+
+      <button id="native-popover" popovertarget="native-popover-panel">Native popover</button>
+      <div id="native-popover-panel" popover>A popover the browser maps.</div>
+
+      <button id="command-popover" commandfor="command-popover-panel" command="toggle-popover">
+        Command popover
+      </button>
+      <div id="command-popover-panel" popover>Opened by an invoker command.</div>
+
+      <details>
+        <summary id="native-summary">Native details</summary>
+        <p>Details content.</p>
+      </details>
+
+      <button id="script-disclosure" aria-expanded="false" aria-controls="script-disclosure-panel">
+        Script disclosure
+      </button>
+      <div id="script-disclosure-panel" hidden>Shown by script.</div>
+
+      <button id="accordion" aria-expanded="false" aria-controls="accordion-panel">Animated accordion</button>
+      <div id="accordion-panel" class="accordion-panel"><p>Grows open.</p></div>
+
+      <button id="fade" aria-expanded="false" aria-controls="fade-panel">Fading panel</button>
+      <div id="fade-panel" class="fade-panel">Fades in.</div>
+
+      <label for="combo">Fruit</label>
+      <input id="combo" role="combobox" aria-expanded="false" aria-controls="combo-list" />
+      <ul id="combo-list" role="listbox" hidden>
+        <li role="option">Apple</li>
+      </ul>
+
+      <form action="#submitted">
+        <button id="submit-with-state" aria-expanded="false" aria-controls="submit-panel">Submit</button>
+        <div id="submit-panel" hidden>Never shown.</div>
+      </form>
+    </main>
+    <script>
+      const toggles = {
+        'script-disclosure': (panel, open) => (panel.hidden = !open),
+        accordion: (panel, open) => panel.classList.toggle('is-open', open),
+        fade: (panel, open) => panel.classList.toggle('is-open', open),
+      }
+      for (const [id, toggle] of Object.entries(toggles)) {
+        const button = document.getElementById(id)
+        button.addEventListener('click', () => {
+          const open = button.getAttribute('aria-expanded') !== 'true'
+          button.setAttribute('aria-expanded', String(open))
+          toggle(document.getElementById(button.getAttribute('aria-controls')), open)
+        })
+      }
+    </script>
+  </body>
+</html>

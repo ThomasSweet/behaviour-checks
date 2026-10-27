@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a native dialog</title>
+  </head>
+  <body>
+    <main>
+      <h1>A native modal dialog</h1>
+      <a href="#before">A link before</a>
+      <button id="open-command" commandfor="native" command="show-modal">Open by command</button>
+      <button id="open-script" type="button">Open by script</button>
+      <dialog id="native" aria-labelledby="native-title">
+        <h2 id="native-title">Native dialog</h2>
+        <label>Name <input /></label>
+        <a href="#inside">A link inside</a>
+        <button commandfor="native" command="close" id="close-command">Close</button>
+      </dialog>
+      <a href="#after">A link after</a>
+    </main>
+    <script>
+      const dialog = document.getElementById('native')
+      document.getElementById('open-script').addEventListener('click', () => dialog.showModal())
+      if (!('commandForElement' in HTMLButtonElement.prototype)) {
+        document.getElementById('close-command').addEventListener('click', () => dialog.close())
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a dialog that ignores Escape</title>
+  </head>
+  <body>
+    <div id="page">
+      <main>
+        <h1>A dialog that ignores Escape</h1>
+        <button id="open">Open the dialog</button>
+      </main>
+    </div>
+    <div id="stubborn" role="dialog" aria-modal="true" aria-labelledby="stubborn-title" hidden>
+      <h2 id="stubborn-title">Dialog</h2>
+      <button id="stubborn-close">Close</button>
+    </div>
+    <script>
+      const page = document.getElementById('page')
+      const dialog = document.getElementById('stubborn')
+      const opener = document.getElementById('open')
+      opener.addEventListener('click', () => {
+        dialog.hidden = false
+        page.inert = true
+        document.getElementById('stubborn-close').focus()
+      })
+      document.getElementById('stubborn-close').addEventListener('click', () => {
+        dialog.hidden = true
+        page.inert = false
+        opener.focus()
+      })
+    </script>
+  </body>
+</html>

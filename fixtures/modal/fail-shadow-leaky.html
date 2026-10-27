@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a leaky dialog of shadow buttons</title>
+  </head>
+  <body>
+    <main>
+      <h1>A leaky dialog whose buttons live in shadow roots</h1>
+      <a href="#before" id="before">A link before</a>
+      <button id="open">Open the toolbar dialog</button>
+      <div id="tools" role="dialog" aria-modal="true" aria-label="Tools" hidden>
+        <x-btn>One</x-btn>
+        <x-btn>Two</x-btn>
+        <x-btn>Three</x-btn>
+        <x-btn>Four</x-btn>
+        <x-btn>Five</x-btn>
+      </div>
+      <a href="#after" id="after">A link after</a>
+    </main>
+    <script>
+      customElements.define(
+        'x-btn',
+        class extends HTMLElement {
+          constructor() {
+            super()
+            this.attachShadow({ mode: 'open' }).innerHTML = '<button><slot></slot></button>'
+          }
+        },
+      )
+      const dialog = document.getElementById('tools')
+      const opener = document.getElementById('open')
+      opener.addEventListener('click', () => {
+        dialog.hidden = false
+        dialog.querySelector('x-btn').shadowRoot.querySelector('button').focus()
+      })
+      dialog.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return
+        dialog.hidden = true
+        opener.focus()
+      })
+    </script>
+  </body>
+</html>

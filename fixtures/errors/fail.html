@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Errors tied to fields: failing</title>
+  </head>
+  <body>
+    <main>
+      <h1>A form after a failed submit</h1>
+      <form>
+        <div role="alert">Fix the errors below.</div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" aria-invalid="true" />
+          <p class="error">Enter an email address</p>
+        </div>
+
+        <div class="field">
+          <label for="phone">Phone</label>
+          <input id="phone" name="phone" aria-invalid="true" />
+        </div>
+
+        <div class="field">
+          <label for="postcode">Postcode</label>
+          <input id="postcode" name="postcode" aria-invalid="true" aria-errormessage="postcode-error" />
+          <p id="postcode-error"></p>
+        </div>
+
+        <div class="field">
+          <label for="city">City</label>
+          <input id="city" name="city" aria-invalid="true" aria-describedby="city-error" />
+          <p id="city-error" hidden>Enter a city</p>
+        </div>
+
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" name="name" />
+          <span class="field-error">Enter your name</span>
+        </div>
+
+        <div class="field">
+          <input type="checkbox" id="terms" name="terms" aria-invalid="true" style="position: absolute; opacity: 0" />
+          <label for="terms">I accept the terms</label>
+        </div>
+
+        <div role="radiogroup" id="size" aria-labelledby="size-label">
+          <p id="size-label">Size</p>
+          <label><input type="radio" name="size" value="small" /> Small</label>
+          <label><input type="radio" name="size" value="large" /> Large</label>
+          <p class="error">Choose a size</p>
+        </div>
+
+        <div class="field">
+          <label for="country">Country</label>
+          <input id="country" name="country" aria-invalid="true" aria-describedby="country-error" />
+          <p id="country-error" class="error">Choose a country</p>
+        </div>
+
+        <button>Send</button>
+      </form>
+
+      <div role="dialog" aria-labelledby="promo-title" aria-describedby="promo-body">
+        <h2 id="promo-title">Promo code</h2>
+        <div id="promo-body">
+          <p>Enter your code.</p>
+          <div class="field">
+            <label for="promo">Code</label>
+            <input id="promo" name="promo" />
+            <p class="error">That code has expired</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

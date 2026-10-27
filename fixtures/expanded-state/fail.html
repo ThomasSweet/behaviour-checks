@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expanded state: failing</title>
+  </head>
+  <body>
+    <main>
+      <h1>Expanded state that lies</h1>
+
+      <button id="stale" aria-expanded="false" aria-controls="stale-panel">Stale state</button>
+      <div id="stale-panel" hidden>Opens, but the button never says so.</div>
+
+      <button id="hardcoded" popovertarget="hardcoded-panel" aria-expanded="false">Hard-coded state</button>
+      <div id="hardcoded-panel" popover>The button was written with a fixed state.</div>
+
+      <details>
+        <summary id="hardcoded-summary" aria-expanded="false">Hard-coded summary</summary>
+        <p>The summary was written with a fixed state.</p>
+      </details>
+
+      <div id="pointer-only" role="button" tabindex="0" aria-expanded="false" aria-controls="pointer-only-panel">
+        Pointer only
+      </div>
+      <div id="pointer-only-panel" hidden>Only a click opens this.</div>
+
+      <span id="no-tab-stop" role="button" aria-expanded="false" aria-controls="no-tab-stop-panel">No tab stop</span>
+      <div id="no-tab-stop-panel" hidden>The keyboard never reaches the button.</div>
+
+      <button id="wrong-at-rest" aria-expanded="true" aria-controls="wrong-at-rest-panel">Wrong at rest</button>
+      <div id="wrong-at-rest-panel" hidden>Says expanded, starts hidden.</div>
+
+      <button id="dead" aria-expanded="false" aria-controls="dead-panel">Does nothing</button>
+      <div id="dead-panel" hidden>Nothing opens this.</div>
+
+      <div style="block-size: 3000px"></div>
+      <section style="content-visibility: auto; contain-intrinsic-size: auto 200px">
+        <button id="stale-far" aria-expanded="false" aria-controls="stale-far-panel">Stale and far</button>
+        <div id="stale-far-panel" hidden>Opens far below the fold, and the button never says so.</div>
+      </section>
+    </main>
+    <script>
+      for (const id of ['stale', 'stale-far']) {
+        document.getElementById(id).addEventListener('click', () => {
+          const panel = document.getElementById(`${id}-panel`)
+          panel.hidden = !panel.hidden
+        })
+      }
+      for (const id of ['pointer-only', 'no-tab-stop']) {
+        const control = document.getElementById(id)
+        control.addEventListener('click', () => {
+          const open = control.getAttribute('aria-expanded') !== 'true'
+          control.setAttribute('aria-expanded', String(open))
+          document.getElementById(`${id}-panel`).hidden = !open
+        })
+      }
+    </script>
+  </body>
+</html>

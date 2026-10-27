@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a dialog that drops focus on close</title>
+  </head>
+  <body>
+    <div id="page">
+      <main>
+        <h1>A dialog that drops focus on close</h1>
+        <a href="#before">A link before</a>
+        <button id="open">Open the dialog</button>
+        <a href="#after">A link after</a>
+      </main>
+    </div>
+    <div id="dropper" role="dialog" aria-modal="true" aria-labelledby="dropper-title" hidden>
+      <h2 id="dropper-title">Dialog</h2>
+      <button id="dropper-ok">OK</button>
+    </div>
+    <script>
+      const page = document.getElementById('page')
+      const dialog = document.getElementById('dropper')
+      document.getElementById('open').addEventListener('click', () => {
+        dialog.hidden = false
+        page.inert = true
+        document.getElementById('dropper-ok').focus()
+      })
+      dialog.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return
+        dialog.hidden = true
+        page.inert = false
+      })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expanded state: hazards</title>
+    <style>
+      .bordered-panel {
+        overflow: hidden;
+        max-height: 0;
+        border-block-end: 1px solid;
+      }
+
+      .bordered-panel.is-open {
+        max-height: 10rem;
+      }
+
+      .spacer {
+        block-size: 3000px;
+      }
+
+      .far {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Widgets a check must handle with care</h1>
+
+      <button id="menu" aria-expanded="false" aria-controls="menu-dialog">Menu</button>
+      <dialog id="menu-dialog">
+        <a href="/expanded-state/elsewhere.html">Home</a>
+        <button id="menu-close">Close</button>
+      </dialog>
+
+      <button id="show-more" aria-expanded="false" aria-controls="more">Show more</button>
+      <div id="more" hidden>
+        <p>More text and <a href="/expanded-state/elsewhere.html" id="more-link">a link</a>.</p>
+      </div>
+
+      <form action="/expanded-state/elsewhere.html" id="search">
+        <label for="q">Name</label>
+        <input id="q" name="q" value="Ada" />
+        <button id="submit-role" role="button" aria-expanded="false" aria-controls="options">More options</button>
+        <button id="reset-role" type="reset" role="button" aria-expanded="false" aria-controls="options">
+          Reset options
+        </button>
+        <div id="options" hidden>Options</div>
+      </form>
+
+      <div role="toolbar" aria-label="Format">
+        <button tabindex="0">Bold</button>
+        <button id="font" tabindex="-1" aria-expanded="false" aria-controls="font-panel">Font</button>
+      </div>
+      <div id="font-panel" hidden>Font choices</div>
+
+      <button id="bordered" aria-expanded="false" aria-controls="bordered-panel">Bordered accordion</button>
+      <div id="bordered-panel" class="bordered-panel"><p>Grows open.</p></div>
+
+      <button id="single-a" aria-expanded="true" aria-controls="single-a-panel">Section A</button>
+      <div id="single-a-panel">A</div>
+      <button id="single-b" aria-expanded="false" aria-controls="single-b-panel">Section B</button>
+      <div id="single-b-panel" hidden>B</div>
+
+      <div id="banner" popover="manual">A banner that starts open.</div>
+      <button id="dismiss" popovertarget="banner" popovertargetaction="hide">Dismiss the banner</button>
+
+      <button id="not-a-popover" popovertarget="plain">Points at a plain element</button>
+      <div id="plain">Always visible.</div>
+
+      <x-disclosure id="shadowed"></x-disclosure>
+
+      <div class="spacer"></div>
+      <section class="far">
+        <button id="far-open" aria-expanded="true" aria-controls="far-panel">Far, open</button>
+        <div id="far-panel">Open and below the fold.</div>
+      </section>
+    </main>
+    <script>
+      const toggle = (button, open) => {
+        button.setAttribute('aria-expanded', String(open))
+        document.getElementById(button.getAttribute('aria-controls')).hidden = !open
+      }
+      const flips = (button) => () => toggle(button, button.getAttribute('aria-expanded') !== 'true')
+
+      const menu = document.getElementById('menu')
+      const menuDialog = document.getElementById('menu-dialog')
+      menu.addEventListener('click', () => {
+        menuDialog.showModal()
+        menu.setAttribute('aria-expanded', 'true')
+      })
+      menuDialog.addEventListener('close', () => menu.setAttribute('aria-expanded', 'false'))
+      document.getElementById('menu-close').addEventListener('click', () => menuDialog.close())
+
+      const showMore = document.getElementById('show-more')
+      showMore.addEventListener('click', () => {
+        toggle(showMore, true)
+        showMore.hidden = true
+        document.getElementById('more-link').focus()
+      })
+
+      for (const id of ['submit-role', 'reset-role', 'font', 'far-open']) {
+        const button = document.getElementById(id)
+        button.addEventListener('click', flips(button))
+      }
+
+      const bordered = document.getElementById('bordered')
+      bordered.addEventListener('click', () => {
+        const open = bordered.getAttribute('aria-expanded') !== 'true'
+        bordered.setAttribute('aria-expanded', String(open))
+        document.getElementById('bordered-panel').classList.toggle('is-open', open)
+      })
+
+      const sections = ['single-a', 'single-b'].map((id) => document.getElementById(id))
+      for (const section of sections) {
+        section.addEventListener('click', () => {
+          const open = section.getAttribute('aria-expanded') !== 'true'
+          for (const other of sections) toggle(other, other === section && open)
+        })
+      }
+
+      document.getElementById('banner').showPopover()
+
+      customElements.define(
+        'x-disclosure',
+        class extends HTMLElement {
+          constructor() {
+            super()
+            const root = this.attachShadow({ mode: 'open' })
+            root.innerHTML =
+              '<button aria-expanded="false" aria-controls="panel">Shadow disclosure</button><div id="panel" hidden>Inside a shadow root.</div>'
+            const button = root.querySelector('button')
+            button.addEventListener('click', () => {
+              const open = button.getAttribute('aria-expanded') !== 'true'
+              button.setAttribute('aria-expanded', String(open))
+              root.getElementById('panel').hidden = !open
+            })
+          }
+        },
+      )
+    </script>
+  </body>
+</html>

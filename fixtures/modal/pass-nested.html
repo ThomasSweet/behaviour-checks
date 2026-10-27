@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: nested modal dialogs</title>
+  </head>
+  <body>
+    <main>
+      <h1>A confirmation opened from inside a dialog</h1>
+      <dialog id="confirm" aria-labelledby="confirm-title">
+        <h2 id="confirm-title">Reset everything?</h2>
+        <button id="yes">Yes</button>
+        <button id="no">No</button>
+      </dialog>
+      <button id="open">Open the settings</button>
+      <dialog id="settings" aria-labelledby="settings-title">
+        <h2 id="settings-title">Settings</h2>
+        <button id="reset">Reset</button>
+        <button id="settings-close">Close</button>
+      </dialog>
+    </main>
+    <script>
+      const confirm = document.getElementById('confirm')
+      const settings = document.getElementById('settings')
+      document.getElementById('open').addEventListener('click', () => settings.showModal())
+      document.getElementById('reset').addEventListener('click', () => confirm.showModal())
+      document.getElementById('settings-close').addEventListener('click', () => settings.close())
+      for (const id of ['yes', 'no']) document.getElementById(id).addEventListener('click', () => confirm.close())
+    </script>
+  </body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: an opener inside a shadow root</title>
+  </head>
+  <body>
+    <main>
+      <h1>An opener inside a shadow root</h1>
+      <a href="#before">A link before</a>
+      <x-opener></x-opener>
+      <dialog id="settings" aria-labelledby="settings-title">
+        <h2 id="settings-title">Settings</h2>
+        <button>Save</button>
+        <button id="settings-close">Close</button>
+      </dialog>
+      <a href="#after">A link after</a>
+    </main>
+    <script>
+      const dialog = document.getElementById('settings')
+      document.getElementById('settings-close').addEventListener('click', () => dialog.close())
+      customElements.define(
+        'x-opener',
+        class extends HTMLElement {
+          constructor() {
+            super()
+            const root = this.attachShadow({ mode: 'open' })
+            root.innerHTML = '<button>Open the settings</button>'
+            root.querySelector('button').addEventListener('click', () => dialog.showModal())
+          }
+        },
+      )
+    </script>
+  </body>
+</html>

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Errors tied to fields: hazards</title>
+  </head>
+  <body>
+    <header>
+      <form role="search" id="site-search">
+        <label for="q">Search</label>
+        <input id="q" name="q" />
+      </form>
+    </header>
+    <main>
+      <div role="alert">Your session ends in two minutes.</div>
+      <h1 class="error-title">Page not found</h1>
+
+      <form id="booking">
+        <div class="field">
+          <label for="fruit">Fruit</label>
+          <select id="fruit" name="fruit" class="select select-error" aria-invalid="true" aria-describedby="fruit-error">
+            <option value="">Pick one</option>
+            <option>Apple</option>
+          </select>
+          <p id="fruit-error" class="error">Choose a fruit</p>
+        </div>
+
+        <div class="field">
+          <label for="email">Email <span class="error">Enter an email address</span></label>
+          <input id="email" name="email" aria-invalid="true" />
+        </div>
+
+        <div class="field">
+          <label>Phone <input name="phone" aria-invalid="true" /> <span class="error">Enter a phone number</span></label>
+        </div>
+
+        <button>Book</button>
+      </form>
+    </main>
+  </body>
+</html>

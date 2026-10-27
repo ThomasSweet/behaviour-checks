@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a dialog that lets focus out</title>
+  </head>
+  <body>
+    <main>
+      <h1>A dialog that lets focus out</h1>
+      <a href="#before" id="before">A link before</a>
+      <button id="open">Open the leaky dialog</button>
+      <div id="leaky" role="dialog" aria-modal="true" aria-labelledby="leaky-title" hidden>
+        <h2 id="leaky-title">Leaky dialog</h2>
+        <button id="leaky-ok">OK</button>
+        <button id="leaky-close">Close</button>
+      </div>
+      <a href="#after" id="after">A link after</a>
+    </main>
+    <script>
+      const dialog = document.getElementById('leaky')
+      const opener = document.getElementById('open')
+      const close = () => {
+        dialog.hidden = true
+        opener.focus()
+      }
+      opener.addEventListener('click', () => {
+        dialog.hidden = false
+        document.getElementById('leaky-ok').focus()
+      })
+      document.getElementById('leaky-close').addEventListener('click', close)
+      dialog.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') close()
+      })
+    </script>
+  </body>
+</html>
