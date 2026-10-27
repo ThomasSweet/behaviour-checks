@@ -244,14 +244,14 @@ is an error and not a hint: a field described only by a hint passes.
 ## Engine notes
 
 Measured on 27 October 2026 on macOS with Playwright 1.64.1, which runs
-Chromium 156, Firefox 157 and WebKit 27.2. Playwright's WebKit is not Safari,
+Chromium 156, Firefox 157 and WebKit 27.2. The fixture tests give the same
+findings on Ubuntu, in this repository's CI. Playwright's WebKit is not Safari,
 and its Firefox has no browser toolbar, so none of this is a claim about a
 browser someone uses.
 
 - **WebKit's Tab reaches only text fields and selects on macOS**, and skips
   buttons, links and checkboxes, as Safari does by default. The walk presses
-  Alt+Tab there, as Option+Tab does in Safari. WebKit on Linux was not
-  measured.
+  Alt+Tab in WebKit on every platform, as Option+Tab does in Safari.
 - **Each engine handles the edge of a modal differently.** None of them lets
   focus reach the page behind a `showModal()` dialog or an inert page.
 
