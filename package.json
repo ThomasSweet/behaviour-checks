@@ -1,6 +1,6 @@
 {
   "name": "@accessible-by-default/checks",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Playwright matchers that operate a page's widgets by keyboard in Chromium, Firefox and WebKit and check they behave as they claim: expanded state, modal focus, and errors tied to their fields.",
   "license": "MIT",
   "author": "Thomas Sweet",
