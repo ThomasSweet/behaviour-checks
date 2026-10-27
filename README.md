@@ -4,6 +4,7 @@
 [![Playwright 1.64 or later](https://img.shields.io/badge/Playwright-1.64_or_later-2563eb)](https://playwright.dev)
 [![Tested in Chromium, Firefox and WebKit](https://img.shields.io/badge/tested_in-Chromium_%C2%B7_Firefox_%C2%B7_WebKit-16a34a)](#engine-notes)
 [![License: MIT](https://img.shields.io/badge/license-MIT-8a8a8a)](./LICENSE)
+[![npm version](https://img.shields.io/npm/v/@accessible-by-default/checks?color=2563eb)](https://www.npmjs.com/package/@accessible-by-default/checks)
 
 Playwright matchers that operate a page's widgets by keyboard, in Chromium,
 Firefox and WebKit, and check that they behave as they claim:
