@@ -4,6 +4,7 @@ const site = process.env.SITE_DIR
 
 export default defineConfig({
   testDir: 'tests',
+  testIgnore: 'consumer/**',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0,

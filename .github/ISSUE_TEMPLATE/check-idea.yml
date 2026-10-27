@@ -1,0 +1,28 @@
+name: Idea for a check
+description: A behaviour that pages get wrong and that only pressing keys and watching the result can catch.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: behaviour
+    attributes:
+      label: What should the check catch?
+      description: What a page claims, and what actually happens when someone uses it.
+    validations:
+      required: true
+  - type: textarea
+    id: markup
+    attributes:
+      label: Why can't a markup check find it?
+      description: If axe or another rule engine can find it from the HTML, it belongs there instead.
+    validations:
+      required: true
+  - type: input
+    id: criteria
+    attributes:
+      label: WCAG success criteria, if any
+      placeholder: e.g. 2.4.3 Focus Order
+  - type: textarea
+    id: example
+    attributes:
+      label: An example
+      description: A page or pattern where you have seen it, and who it gets in the way of.
