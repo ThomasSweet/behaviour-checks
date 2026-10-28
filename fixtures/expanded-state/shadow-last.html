@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expanded state: the only invoker lives in a shadow root</title>
+  </head>
+  <body>
+    <main>
+      <h1>The only invoker lives in a shadow root</h1>
+      <x-disclosure></x-disclosure>
+    </main>
+    <script>
+      customElements.define(
+        'x-disclosure',
+        class extends HTMLElement {
+          connectedCallback() {
+            const root = this.attachShadow({ mode: 'open' })
+            root.innerHTML = `
+              <button id="toggle" aria-expanded="false" aria-controls="panel">More details</button>
+              <div id="panel" hidden>The details.</div>`
+            const toggle = root.getElementById('toggle')
+            toggle.addEventListener('click', () => {
+              const open = toggle.getAttribute('aria-expanded') !== 'true'
+              toggle.setAttribute('aria-expanded', String(open))
+              root.getElementById('panel').hidden = !open
+            })
+          }
+        },
+      )
+    </script>
+  </body>
+</html>

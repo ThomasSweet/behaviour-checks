@@ -20,7 +20,7 @@ function scope(received: Page | Locator) {
 function line(finding: Finding) {
   const { selector, label } = finding.element
   const criteria = finding.criteria.length ? ` (${finding.criteria.join(', ')})` : ''
-  return `  - ${selector}${label ? ` "${label}"` : ''}: ${finding.what}${criteria}`
+  return `  - ${selector}${label ? ` "${label}"` : ''}: ${finding.what}${criteria} [${finding.code}]`
 }
 
 function counted(count: number, word: string) {

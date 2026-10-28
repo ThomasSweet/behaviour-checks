@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a long CSS carousel behind a native dialog</title>
+    <style>
+      .carousel { overflow-x: auto; scroll-snap-type: x mandatory; scroll-marker-group: after; inline-size: 30rem; }
+      .carousel-track { display: grid; grid-auto-flow: column; grid-auto-columns: 80%; gap: 1rem; margin: 0; padding: 0; list-style: none; }
+      .carousel-slide { scroll-snap-align: center; min-block-size: 6rem; }
+      .carousel::scroll-marker-group { display: flex; gap: .5rem; }
+      .carousel-slide::scroll-marker { content: ' ' / attr(data-marker-label); inline-size: 1rem; block-size: 1rem; border: 1px solid; border-radius: 50%; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>A long carousel behind a modal dialog</h1>
+      <div class="carousel" tabindex="0" role="region" aria-label="Example carousel">
+        <ul class="carousel-track" role="list">
+          <li class="carousel-slide" data-marker-label="Go to slide 1 of 24">Slide 1</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 2 of 24">Slide 2</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 3 of 24">Slide 3</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 4 of 24">Slide 4</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 5 of 24">Slide 5</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 6 of 24">Slide 6</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 7 of 24">Slide 7</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 8 of 24">Slide 8</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 9 of 24">Slide 9</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 10 of 24">Slide 10</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 11 of 24">Slide 11</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 12 of 24">Slide 12</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 13 of 24">Slide 13</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 14 of 24">Slide 14</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 15 of 24">Slide 15</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 16 of 24">Slide 16</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 17 of 24">Slide 17</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 18 of 24">Slide 18</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 19 of 24">Slide 19</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 20 of 24">Slide 20</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 21 of 24">Slide 21</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 22 of 24">Slide 22</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 23 of 24">Slide 23</li>
+          <li class="carousel-slide" data-marker-label="Go to slide 24 of 24">Slide 24</li>
+        </ul>
+      </div>
+      <button id="open" type="button">Open the dialog</button>
+      <dialog id="dialog" aria-labelledby="dialog-title">
+        <h2 id="dialog-title">A modal dialog</h2>
+        <button id="first" type="button">First</button>
+        <button id="close" type="button">Close</button>
+      </dialog>
+    </main>
+    <script>
+      const dialog = document.getElementById('dialog')
+      document.getElementById('open').addEventListener('click', () => dialog.showModal())
+      document.getElementById('close').addEventListener('click', () => dialog.close())
+    </script>
+  </body>
+</html>

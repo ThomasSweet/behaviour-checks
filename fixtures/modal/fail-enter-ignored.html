@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: an opener that only a click opens</title>
+  </head>
+  <body>
+    <main>
+      <h1>An opener that only a click opens</h1>
+      <div id="open" role="button" tabindex="0">Open the dialog</div>
+      <dialog id="clicky" aria-labelledby="clicky-title">
+        <h2 id="clicky-title">Opened by a click</h2>
+        <button id="clicky-ok" type="button">OK</button>
+        <button id="clicky-close" type="button">Close</button>
+      </dialog>
+    </main>
+    <script>
+      const dialog = document.getElementById('clicky')
+      const opener = document.getElementById('open')
+      opener.addEventListener('click', () => dialog.showModal())
+      document.getElementById('clicky-close').addEventListener('click', () => dialog.close())
+      dialog.addEventListener('close', () => opener.focus())
+    </script>
+  </body>
+</html>

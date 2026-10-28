@@ -37,8 +37,12 @@ August 2025, so treat it as shipped only once it ships.
 the `aria-expanded` attribute only. I read it in the installed 1.64.1, and
 the research agent read it on main. Neither has `popover` or `command`
 logic, and no issue asks for it. HTML-AAM (the Editor's Draft of 26 October,
-now at w3c.github.io/aria/html-aam) maps a `popovertarget` invoker to
-`aria-expanded` in §3.6.109, and the popover `command` states do the same.
+now at w3c.github.io/aria/html-aam) maps a
+[`popovertarget`](https://w3c.github.io/aria/html-aam/#att-popovertarget)
+invoker to `aria-expanded=true` when its popover is "displayed as a
+popover", and
+[`command` in the popover states](https://w3c.github.io/aria/html-aam/#att-command-popovers)
+does the same.
 The upstream issue in task 6 is still new.
 
 **Prior art the brief missed.** Two projects appeared in the last two
@@ -226,8 +230,10 @@ My recommendation first in each.
 4. **Licence: MIT.** It matches the site, and it is the plain difference
    from A11y-Pulse.
 5. **Playwright floor: 1.64.** Nothing here depends on 1.65.
-6. **CLI after the library.** 0.1 is the library. 0.2 adds the CLI and the
-   agent skill together, because the skill calls the CLI.
+6. **CLI after the library.** 0.1 is the library. A later minor version adds
+   the CLI and the agent skill together, because the skill calls the CLI.
+   They were planned for 0.2, which went to stable finding codes instead
+   (28 October).
 7. **Docs in the package**, one page per check: what it proves, what it
    does not, and the engine traps. The proof chapter gets one section that
    links there.

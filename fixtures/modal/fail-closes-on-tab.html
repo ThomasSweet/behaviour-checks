@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a dialog that closes when focus leaves it</title>
+  </head>
+  <body>
+    <main>
+      <h1>A dialog that closes when focus leaves it</h1>
+      <button id="open" type="button">Open the dialog</button>
+      <a href="#after" id="after">A link after</a>
+    </main>
+    <div id="fleeting" role="dialog" aria-modal="true" aria-labelledby="fleeting-title" hidden>
+      <h2 id="fleeting-title">A dialog that closes on focusout</h2>
+      <button id="fleeting-only" type="button">The only button</button>
+    </div>
+    <script>
+      const dialog = document.getElementById('fleeting')
+      document.getElementById('open').addEventListener('click', () => {
+        dialog.hidden = false
+        document.getElementById('fleeting-only').focus()
+      })
+      dialog.addEventListener('focusout', () => {
+        dialog.hidden = true
+      })
+    </script>
+  </body>
+</html>

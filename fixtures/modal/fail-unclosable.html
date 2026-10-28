@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a dialog nothing closes</title>
+  </head>
+  <body>
+    <div id="page">
+      <main>
+        <h1>A dialog nothing closes</h1>
+        <button id="open" type="button">Open the dialog</button>
+      </main>
+    </div>
+    <div id="stuck" role="dialog" aria-modal="true" aria-labelledby="stuck-title" hidden>
+      <h2 id="stuck-title">A dialog with a broken close button</h2>
+      <button id="stuck-ok" type="button">OK</button>
+      <button id="stuck-close" type="button">Close</button>
+    </div>
+    <script>
+      const dialog = document.getElementById('stuck')
+      document.getElementById('open').addEventListener('click', () => {
+        dialog.hidden = false
+        document.getElementById('page').inert = true
+        document.getElementById('stuck-ok').focus()
+      })
+    </script>
+  </body>
+</html>

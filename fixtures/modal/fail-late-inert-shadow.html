@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a shadow page that goes inert only after focus escaped</title>
+  </head>
+  <body>
+    <x-shell></x-shell>
+    <div id="late" role="dialog" aria-modal="true" aria-labelledby="late-title" hidden>
+      <h2 id="late-title">A dialog that locks a shadow page too late</h2>
+      <button id="late-ok" type="button">OK</button>
+      <button id="late-close" type="button">Close</button>
+    </div>
+    <script>
+      customElements.define(
+        'x-shell',
+        class extends HTMLElement {
+          constructor() {
+            super()
+            this.attachShadow({ mode: 'open' }).innerHTML = `
+              <main id="page">
+                <a href="#before" id="before">A link before</a>
+                <button id="open" type="button">Open the dialog</button>
+                <a href="#after" id="after">A link after</a>
+              </main>`
+          }
+        },
+      )
+      const shell = document.querySelector('x-shell')
+      const page = shell.shadowRoot.getElementById('page')
+      const opener = shell.shadowRoot.getElementById('open')
+      const dialog = document.getElementById('late')
+      const close = () => {
+        dialog.hidden = true
+        page.inert = false
+        opener.focus()
+      }
+      document.addEventListener(
+        'focusin',
+        (event) => {
+          const target = event.composedPath()[0]
+          if (dialog.hidden || dialog.contains(target)) return
+          target.blur()
+          page.inert = true
+        },
+        true,
+      )
+      opener.addEventListener('click', () => {
+        dialog.hidden = false
+        document.getElementById('late-ok').focus()
+      })
+      document.getElementById('late-close').addEventListener('click', close)
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !dialog.hidden) close()
+      })
+    </script>
+  </body>
+</html>

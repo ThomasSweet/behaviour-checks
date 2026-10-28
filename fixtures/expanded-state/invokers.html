@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expanded state: invokers the check once misread</title>
+  </head>
+  <body>
+    <main>
+      <h1>Invokers the check once misread</h1>
+
+      <button id="mixed-case" commandfor="mixed-case-popover" command="Toggle-Popover" aria-expanded="false">
+        Command keyword in mixed case
+      </button>
+      <div id="mixed-case-popover" popover>A command keyword matches whatever its case.</div>
+
+      <button id="both" popovertarget="both-ignored" commandfor="both-commanded" command="toggle-popover">
+        Both attributes
+      </button>
+      <div id="both-ignored" popover>The popovertarget that commandfor overrides.</div>
+      <div id="both-commanded" popover>The popover commandfor opens.</div>
+
+      <button id="hide-only" popovertarget="hide-only-popover" popovertargetaction="hide">Hide only</button>
+      <div id="hide-only-popover" popover>Closed, and this button can only close it.</div>
+
+      <button id="command-hide-only" commandfor="command-hide-only-popover" command="hide-popover">Command hide only</button>
+      <div id="command-hide-only-popover" popover>Closed, and this button can only close it.</div>
+
+      <button id="show-only" popovertarget="show-only-popover" popovertargetaction="show">Show only</button>
+      <div id="show-only-popover" popover="manual">Open, and this button can only open it.</div>
+
+      <button id="command-show-only" commandfor="command-show-only-popover" command="show-popover">Command show only</button>
+      <div id="command-show-only-popover" popover="manual">Open, and this button can only open it.</div>
+
+      <div id="shadow-popover" popover="manual">
+        <x-close-button></x-close-button>
+      </div>
+
+      <button id="custom" commandfor="custom-panel" command="--toggle" popovertarget="custom-spare" aria-expanded="false">
+        A custom command with a popovertarget it never runs
+      </button>
+      <div id="custom-panel" hidden>Shown by the custom command.</div>
+      <div id="custom-spare" popover>Never opened: commandfor wins.</div>
+
+      <input type="button" id="input-both" popovertarget="input-both-popover" commandfor="input-both-other" command="toggle-popover" value="An input, where commandfor does nothing" />
+      <div id="input-both-popover" popover>Opened by popovertarget.</div>
+      <div id="input-both-other" popover>Never opened: inputs ignore commandfor.</div>
+
+      <button id="no-command" commandfor="no-command-target" popovertarget="no-command-popover" aria-expanded="false">
+        commandfor with no command
+      </button>
+      <div id="no-command-target" hidden>Named by commandfor.</div>
+      <div id="no-command-popover" popover>Chromium opens this; HTML says nothing happens.</div>
+
+      <button id="minus-one" tabindex="-1" aria-expanded="false" aria-controls="minus-one-panel">Not a tab stop</button>
+      <div id="minus-one-panel" hidden>Shown by a button the Tab key never reaches.</div>
+
+      <span id="unfocusable-dead" role="button" aria-expanded="false" aria-controls="unfocusable-dead-panel">
+        Cannot take focus and does nothing
+      </span>
+      <div id="unfocusable-dead-panel" hidden>Nothing opens this.</div>
+    </main>
+    <script>
+      for (const id of ['show-only-popover', 'command-show-only-popover', 'shadow-popover']) document.getElementById(id).showPopover()
+      customElements.define(
+        'x-close-button',
+        class extends HTMLElement {
+          connectedCallback() {
+            const root = this.attachShadow({ mode: 'open' })
+            root.innerHTML = '<button id="inner-close" aria-expanded="false">Close from inside</button>'
+            root.getElementById('inner-close').popoverTargetElement = document.getElementById('shadow-popover')
+          }
+        },
+      )
+      document.getElementById('custom-panel').addEventListener('command', (event) => {
+        if (event.command !== '--toggle') return
+        const panel = event.currentTarget
+        panel.hidden = !panel.hidden
+        document.getElementById('custom').setAttribute('aria-expanded', String(!panel.hidden))
+      })
+      document.getElementById('minus-one').addEventListener('click', (event) => {
+        const control = event.currentTarget
+        const open = control.getAttribute('aria-expanded') !== 'true'
+        control.setAttribute('aria-expanded', String(open))
+        document.getElementById('minus-one-panel').hidden = !open
+      })
+    </script>
+  </body>
+</html>

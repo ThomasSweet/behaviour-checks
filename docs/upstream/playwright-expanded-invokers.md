@@ -78,8 +78,8 @@ Each button matches `expanded: false` while its popover is closed and `expanded:
 
 That is the mapping HTML-AAM gives these buttons, and it is what Chromium reports:
 
-- HTML-AAM [§3.6.109 `popovertarget`](https://w3c.github.io/aria/html-aam/#att-popovertarget): if the associated element is displayed as a popover, `aria-expanded=true`; if it is hidden, `aria-expanded=false`.
-- HTML-AAM [§3.6.25 `command` in the Toggle, Show and Hide popover states](https://w3c.github.io/aria/html-aam/#att-command-popovers): the same mapping.
+- HTML-AAM, [`popovertarget`](https://w3c.github.io/aria/html-aam/#att-popovertarget): "If the associated element is displayed as a popover: `aria-expanded=true`" and "If the associated element is hidden: `aria-expanded=false`".
+- HTML-AAM, [`command` in the Toggle, Show, and Hide popover states](https://w3c.github.io/aria/html-aam/#att-command-popovers): the same two lines, word for word.
 - Chromium 156's accessibility tree reports `expanded: false` for all three buttons before the click and `expanded: true` after it. That includes the third button: Chromium follows the popover and ignores the stale `aria-expanded="false"`.
 ```
 
@@ -288,9 +288,11 @@ All read or run on 27 October 2026.
    by `aria-expanded`"; `checked` is "usually set by `aria-checked` or
    native `<input type=checkbox>` controls".
 6. [HTML-AAM Editor's Draft, 26 October 2026](https://w3c.github.io/aria/html-aam/)
-   (served with Last-Modified 26 October 2026, 14:51 GMT): §3.6.109
-   `popovertarget` and §3.6.25 `command` in the Toggle, Show and Hide
-   popover states.
+   (served with Last-Modified 26 October 2026, 14:51 GMT): the
+   [`popovertarget`](https://w3c.github.io/aria/html-aam/#att-popovertarget)
+   entry and the
+   [`command` in the Toggle, Show, and Hide popover states](https://w3c.github.io/aria/html-aam/#att-command-popovers)
+   entry. Section numbers move between drafts, so these link the entries.
 7. The repro above, run with Playwright 1.64.1, Chromium 156.0.8078.4,
    Firefox 157.0 and WebKit 27.2 on macOS 27.0.1 (arm64), Node 26.12.0:
    18 failed, 3 passed, 6 skipped. A separate run with the same page
@@ -318,7 +320,10 @@ All read or run on 27 October 2026.
 
 - `<summary>`. Chromium's tree exposes it as a disclosure triangle with
   `expanded` false, then true. Playwright gives `<summary>` no role and
-  snapshots the `<details>` as a group with no state. HTML-AAM §3.5.124
-  says `<summary>` has "No corresponding role" in WAI-ARIA (same draft,
-  read 27 October 2026), so it is a separate question and would blur
+  snapshots the `<details>` as a group with no state. HTML-AAM's
+  [`summary`](https://w3c.github.io/aria/html-aam/#el-summary) entry says
+  "No corresponding role" in WAI-ARIA, and the
+  [`open` attribute on `details`](https://w3c.github.io/aria/html-aam/#att-open-details)
+  maps `aria-expanded` with "Set properties on the summary element." (same
+  draft, read 27 October 2026), so it is a separate question and would blur
   this one. It could be a follow-up issue.

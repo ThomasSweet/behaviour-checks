@@ -94,7 +94,8 @@ export function describeInPage(element: Node): FoundElement {
     parts.unshift(part(node))
     if (node.id) break
   }
-  const root = element.getRootNode() as Document | ShadowRoot
+  const found = element.getRootNode()
+  const root = found instanceof Document || found instanceof ShadowRoot ? found : element.ownerDocument
   const byIds = (ids: string | null) =>
     (ids ?? '')
       .split(/\s+/)

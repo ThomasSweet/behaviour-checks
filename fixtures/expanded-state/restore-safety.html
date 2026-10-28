@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expanded state: a custom command the check must never run</title>
+  </head>
+  <body>
+    <main>
+      <h1>A custom command the check must never run</h1>
+      <button id="reveal" aria-expanded="false" aria-controls="items">Show all items</button>
+      <ul id="items" hidden>
+        <li>First</li>
+        <li>Second</li>
+      </ul>
+      <button id="clear" commandfor="items" command="--clear">Clear the list</button>
+    </main>
+    <script>
+      const reveal = document.getElementById('reveal')
+      reveal.addEventListener('click', () => {
+        reveal.setAttribute('aria-expanded', 'true')
+        document.getElementById('items').hidden = false
+        reveal.hidden = true
+      })
+      document.getElementById('items').addEventListener('command', (event) => {
+        if (event.command === '--clear') event.currentTarget.replaceChildren()
+      })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expanded state: focus that starts on SVG or in a closed shadow root</title>
+  </head>
+  <body>
+    <main>
+      <h1>Focus that starts on SVG or in a closed shadow root</h1>
+      <svg width="120" height="24" role="img" aria-label="A linked shape">
+        <a id="svg-link" href="#shape"><rect width="120" height="24" /></a>
+      </svg>
+      <x-field></x-field>
+      <button id="disclosure" aria-expanded="false" aria-controls="disclosure-panel">More</button>
+      <div id="disclosure-panel" hidden>The details.</div>
+    </main>
+    <script>
+      customElements.define(
+        'x-field',
+        class extends HTMLElement {
+          constructor() {
+            super()
+            this.attachShadow({ mode: 'closed' }).innerHTML = '<input aria-label="Closed field" />'
+          }
+        },
+      )
+      const disclosure = document.getElementById('disclosure')
+      disclosure.addEventListener('click', () => {
+        const open = disclosure.getAttribute('aria-expanded') !== 'true'
+        disclosure.setAttribute('aria-expanded', String(open))
+        document.getElementById('disclosure-panel').hidden = !open
+      })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expanded state: popovertarget and commandfor on elements that invoke nothing</title>
+  </head>
+  <body>
+    <main>
+      <h1>popovertarget and commandfor on elements that invoke nothing</h1>
+      <button id="disabled-popover" popovertarget="disabled-popover-target" aria-expanded="false" disabled>Disabled, with popovertarget</button>
+      <div id="disabled-popover-target" popover="manual">Open since load.</div>
+      <button id="disabled-command" commandfor="disabled-command-target" command="toggle-popover" aria-expanded="false" disabled>
+        Disabled, with a command
+      </button>
+      <div id="disabled-command-target" popover="manual">Open since load.</div>
+      <form>
+        <button id="submit-popover" popovertarget="submit-popover-target" aria-expanded="false">A submit button with popovertarget</button>
+      </form>
+      <div id="submit-popover-target" popover="manual">Open since load.</div>
+    </main>
+    <script>
+      for (const id of ['disabled-popover-target', 'disabled-command-target', 'submit-popover-target']) {
+        document.getElementById(id).showPopover()
+      }
+    </script>
+  </body>
+</html>

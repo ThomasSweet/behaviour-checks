@@ -1,7 +1,8 @@
 import type { Locator, Page } from '@playwright/test'
 
+import { defined } from './codes.js'
 import { contextOf, describe, rootsOf } from './page.js'
-import type { Finding, Severity } from './types.js'
+import type { CodeOf, Finding } from './types.js'
 
 export interface ErrorAssociationOptions {
   within?: Locator
@@ -10,8 +11,7 @@ export interface ErrorAssociationOptions {
 
 interface Problem {
   element: Element
-  severity: Severity
-  criteria: string[]
+  code: CodeOf<'error-association'>
   what: string
 }
 
@@ -56,7 +56,7 @@ function findProblemsInPage(root: Element, errorsSelector: string) {
     ...ids(field, 'aria-labelledby').map((id) => byId(field, id)),
   ].filter((node) => node !== null)
 
-  const problems = new Map<Element, { severity: 'failure' | 'warning'; criteria: string[]; what: string }>()
+  const problems = new Map<Element, Omit<Problem, 'element'>>()
 
   for (const field of root.querySelectorAll(fieldSelector)) {
     if (!fieldShown(field) || !invalid(field)) continue
@@ -68,17 +68,15 @@ function findProblemsInPage(root: Element, errorsSelector: string) {
     const named = namersOf(field).flatMap((namer) => [...namer.querySelectorAll(errorsSelector)])
     const said = [...described, ...named].filter((node) => text(node))
     if (said.length === 0) {
-      problems.set(field, {
-        severity: 'failure',
-        criteria: ['3.3.1'],
-        what: described.length
-          ? 'it is marked invalid, and the message tied to it is empty'
-          : 'it is marked invalid, but no error message is tied to it',
-      })
+      problems.set(
+        field,
+        described.length
+          ? { code: 'error-association/tied-message-is-empty', what: 'it is marked invalid, and the message tied to it is empty' }
+          : { code: 'error-association/invalid-field-has-no-message', what: 'it is marked invalid, but no error message is tied to it' },
+      )
     } else if (!said.some(shown)) {
       problems.set(field, {
-        severity: 'warning',
-        criteria: ['3.3.1'],
+        code: 'error-association/tied-message-is-hidden',
         what: `it is marked invalid, and its message ${quote(said[0])} is tied to it but not shown on screen`,
       })
     }
@@ -119,8 +117,7 @@ function findProblemsInPage(root: Element, errorsSelector: string) {
     const field = group[0]
     if (!field) continue
     problems.set(field, {
-      severity: 'failure',
-      criteria: ['1.3.1'],
+      code: 'error-association/visible-error-is-not-tied',
       what: invalid(field)
         ? `it is marked invalid, and the error ${quote(message)} next to it is not tied to it (aria-describedby or aria-errormessage)`
         : `the error ${quote(message)} is shown next to it but not tied to it (aria-describedby or aria-errormessage)`,
@@ -140,15 +137,15 @@ export async function findUntiedErrors(page: Page, options: ErrorAssociationOpti
     const count = await problems.evaluate((list) => list.length)
     for (let index = 0; index < count; index++) {
       const element = (await problems.evaluateHandle((list, at) => list[at].element, index)).asElement()
-      const { severity, criteria, what } = await problems.evaluate((list, at): Omit<Problem, 'element'> => {
-        const { severity, criteria, what } = list[at]
-        return { severity, criteria, what }
+      const { code, what } = await problems.evaluate((list, at): Omit<Problem, 'element'> => {
+        const { code, what } = list[at]
+        return { code, what }
       }, index)
       if (!element) continue
       const found = await describe(element)
       if (seen.has(`${found.selector} ${what}`)) continue
       seen.add(`${found.selector} ${what}`)
-      findings.push({ check: 'error-association', severity, criteria, element: found, what, context })
+      findings.push({ check: 'error-association', code, ...defined(code), element: found, what, context })
     }
     await problems.dispose()
   }

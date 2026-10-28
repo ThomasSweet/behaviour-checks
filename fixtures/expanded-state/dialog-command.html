@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expanded state: a dialog command aimed at something that is not a dialog</title>
+  </head>
+  <body>
+    <main>
+      <h1>A dialog command aimed at something that is not a dialog</h1>
+      <button id="misaimed" commandfor="misaimed-target" command="show-modal" popovertarget="misaimed-popover" aria-expanded="false">
+        Show modal, aimed at a div
+      </button>
+      <div id="misaimed-target">Not a dialog.</div>
+      <div id="misaimed-popover" popover>Chromium opens this; HTML says nothing happens.</div>
+    </main>
+  </body>
+</html>
