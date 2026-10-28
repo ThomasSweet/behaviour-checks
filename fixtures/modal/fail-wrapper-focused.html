@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a page that focuses the wrapper instead of the dialog</title>
+  </head>
+  <body>
+    <main id="main" tabindex="-1">
+      <div id="content">
+        <h1>A page that focuses the wrapper instead of the dialog</h1>
+        <a href="#before">A link before</a>
+        <button id="open" type="button">Open the photo</button>
+        <a href="#after">A link after</a>
+      </div>
+      <div id="photo" role="dialog" aria-modal="true" aria-labelledby="photo-title" hidden>
+        <h2 id="photo-title">Photo 1</h2>
+        <button id="photo-like" type="button">Like</button>
+        <button id="photo-close" type="button">Close</button>
+      </div>
+    </main>
+    <script>
+      const dialog = document.getElementById('photo')
+      const opener = document.getElementById('open')
+      const content = document.getElementById('content')
+      const close = () => {
+        dialog.hidden = true
+        content.inert = false
+        opener.focus()
+      }
+      opener.addEventListener('click', () => {
+        dialog.hidden = false
+        content.inert = true
+        document.getElementById('main').focus()
+      })
+      document.getElementById('photo-close').addEventListener('click', close)
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !dialog.hidden) close()
+      })
+    </script>
+  </body>
+</html>

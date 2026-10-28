@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 import { findUntiedErrors, type Finding } from '../src/index.js'
 
 const summary = (findings: Finding[]) =>
-  findings.map((finding) => `${finding.severity} ${finding.criteria.join(' ')} ${finding.element.selector}`).sort()
+  findings.map((finding) => `${finding.code} ${finding.severity} ${finding.criteria.join(' ')} ${finding.element.selector}`).sort()
 const detail = (findings: Finding[]) => JSON.stringify(findings, null, 2)
 
 test('nothing is reported before anyone submits', async ({ page }) => {
@@ -27,8 +27,8 @@ test('a radio group whose error is tied to nothing is caught', async ({ page }) 
   await expect(page.locator('#plan-error')).toBeVisible()
   const findings = await findUntiedErrors(page, { within: page.locator('#plan') })
   expect(summary(findings), detail(findings)).toEqual([
-    'failure 1.3.1 #plan > label:nth-of-type(1) > input',
-    'failure 3.3.1 #plan > label:nth-of-type(2) > input',
+    'error-association/invalid-field-has-no-message failure 3.3.1 #plan > label:nth-of-type(2) > input',
+    'error-association/visible-error-is-not-tied failure 1.3.1 #plan > label:nth-of-type(1) > input',
   ])
 })
 
@@ -61,13 +61,13 @@ test('the failing form reports exactly the planted faults', async ({ page }) => 
   await page.goto('/errors/fail.html')
   const findings = await findUntiedErrors(page)
   expect(summary(findings), detail(findings)).toEqual([
-    'failure 1.3.1 #email',
-    'failure 1.3.1 #name',
-    'failure 1.3.1 #promo',
-    'failure 1.3.1 #size > label:nth-of-type(1) > input',
-    'failure 3.3.1 #phone',
-    'failure 3.3.1 #postcode',
-    'failure 3.3.1 #terms',
-    'warning 3.3.1 #city',
+    'error-association/invalid-field-has-no-message failure 3.3.1 #phone',
+    'error-association/invalid-field-has-no-message failure 3.3.1 #terms',
+    'error-association/tied-message-is-empty failure 3.3.1 #postcode',
+    'error-association/tied-message-is-hidden warning 3.3.1 #city',
+    'error-association/visible-error-is-not-tied failure 1.3.1 #email',
+    'error-association/visible-error-is-not-tied failure 1.3.1 #name',
+    'error-association/visible-error-is-not-tied failure 1.3.1 #promo',
+    'error-association/visible-error-is-not-tied failure 1.3.1 #size > label:nth-of-type(1) > input',
   ])
 })

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a carousel in a shadow root behind an inert page</title>
+  </head>
+  <body>
+    <div id="page">
+      <main>
+        <h1>A carousel in a shadow root behind an inert page</h1>
+        <x-carousel></x-carousel>
+        <button id="open" type="button">Open the dialog</button>
+      </main>
+    </div>
+    <div id="shadowed" role="dialog" aria-modal="true" aria-labelledby="shadowed-title" hidden>
+      <h2 id="shadowed-title">A dialog over an inert page</h2>
+      <button id="shadowed-ok" type="button">OK</button>
+      <button id="shadowed-close" type="button">Close</button>
+    </div>
+    <script>
+      customElements.define(
+        'x-carousel',
+        class extends HTMLElement {
+          connectedCallback() {
+            this.attachShadow({ mode: 'open' }).innerHTML = `
+              <style>
+                .carousel { overflow-x: auto; scroll-snap-type: x mandatory; scroll-marker-group: after; inline-size: 30rem; }
+                .carousel-track { display: grid; grid-auto-flow: column; grid-auto-columns: 80%; gap: 1rem; margin: 0; padding: 0; list-style: none; }
+                .carousel-slide { scroll-snap-align: center; min-block-size: 6rem; }
+                .carousel::scroll-marker-group { display: flex; gap: .5rem; }
+                .carousel-slide::scroll-marker { content: ' ' / attr(data-marker-label); inline-size: 1rem; block-size: 1rem; border: 1px solid; border-radius: 50%; }
+              </style>
+              <div class="carousel" role="region" aria-label="Example carousel">
+                <ul class="carousel-track" role="list">
+                  <li class="carousel-slide" data-marker-label="Go to slide 1 of 3">Slide 1</li>
+                  <li class="carousel-slide" data-marker-label="Go to slide 2 of 3">Slide 2</li>
+                  <li class="carousel-slide" data-marker-label="Go to slide 3 of 3">Slide 3</li>
+                </ul>
+              </div>`
+          }
+        },
+      )
+      const dialog = document.getElementById('shadowed')
+      const page = document.getElementById('page')
+      const opener = document.getElementById('open')
+      const close = () => {
+        dialog.hidden = true
+        page.inert = false
+        opener.focus()
+      }
+      opener.addEventListener('click', () => {
+        dialog.hidden = false
+        page.inert = true
+        document.getElementById('shadowed-ok').focus()
+      })
+      document.getElementById('shadowed-close').addEventListener('click', close)
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !dialog.hidden) close()
+      })
+    </script>
+  </body>
+</html>

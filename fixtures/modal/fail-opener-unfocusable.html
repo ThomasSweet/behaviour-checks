@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: an opener that cannot take focus</title>
+  </head>
+  <body>
+    <main>
+      <h1>An opener that cannot take focus</h1>
+      <span id="open" role="button">Open the dialog</span>
+      <dialog id="unreachable" aria-labelledby="unreachable-title">
+        <h2 id="unreachable-title">Opened from a span</h2>
+        <button id="unreachable-ok" type="button">OK</button>
+        <button id="unreachable-close" type="button">Close</button>
+      </dialog>
+    </main>
+    <script>
+      const dialog = document.getElementById('unreachable')
+      document.getElementById('open').addEventListener('click', () => dialog.showModal())
+      document.getElementById('unreachable-close').addEventListener('click', () => dialog.close())
+    </script>
+  </body>
+</html>

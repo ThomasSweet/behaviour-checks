@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a page that goes inert only after focus has escaped</title>
+  </head>
+  <body>
+    <div id="page">
+      <main>
+        <h1>A page that goes inert only after focus has escaped</h1>
+        <a href="#before" id="before">A link before</a>
+        <button id="open" type="button">Open the dialog</button>
+        <a href="#after" id="after">A link after</a>
+      </main>
+    </div>
+    <div id="late" role="dialog" aria-modal="true" aria-labelledby="late-title" hidden>
+      <h2 id="late-title">A dialog that locks the page too late</h2>
+      <button id="late-ok" type="button">OK</button>
+      <button id="late-close" type="button">Close</button>
+    </div>
+    <script>
+      const dialog = document.getElementById('late')
+      const page = document.getElementById('page')
+      const opener = document.getElementById('open')
+      const close = () => {
+        dialog.hidden = true
+        page.inert = false
+        opener.focus()
+      }
+      document.addEventListener('focusin', (event) => {
+        if (dialog.hidden || dialog.contains(event.target)) return
+        event.target.blur()
+        page.inert = true
+      })
+      opener.addEventListener('click', () => {
+        dialog.hidden = false
+        document.getElementById('late-ok').focus()
+      })
+      document.getElementById('late-close').addEventListener('click', close)
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !dialog.hidden) close()
+      })
+    </script>
+  </body>
+</html>

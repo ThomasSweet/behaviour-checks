@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a page that replaces whatever takes focus behind the dialog</title>
+  </head>
+  <body>
+    <main>
+      <h1>A page that replaces whatever takes focus behind the dialog</h1>
+      <p id="note">Saved for later</p>
+      <button id="before" type="button" aria-labelledby="note">Before</button>
+      <button id="open" type="button">Open the dialog</button>
+      <button id="after" type="button" aria-labelledby="note">After</button>
+    </main>
+    <div id="swapping" role="dialog" aria-modal="true" aria-labelledby="swapping-title" hidden>
+      <h2 id="swapping-title">A dialog whose page swaps nodes</h2>
+      <button id="swapping-ok" type="button">OK</button>
+      <button id="swapping-close" type="button">Close</button>
+    </div>
+    <script>
+      const dialog = document.getElementById('swapping')
+      const opener = document.getElementById('open')
+      const close = () => {
+        dialog.hidden = true
+        opener.focus()
+      }
+      document.addEventListener('focusin', (event) => {
+        if (dialog.hidden || dialog.contains(event.target)) return
+        event.target.replaceWith(event.target.cloneNode(true))
+      })
+      opener.addEventListener('click', () => {
+        dialog.hidden = false
+        document.getElementById('swapping-ok').focus()
+      })
+      document.getElementById('swapping-close').addEventListener('click', close)
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !dialog.hidden) close()
+      })
+    </script>
+  </body>
+</html>

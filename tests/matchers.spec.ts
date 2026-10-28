@@ -10,7 +10,7 @@ test('toHaveTruthfulExpandedState passes a truthful page and lists what a lying 
   await expect(page.locator('main')).not.toHaveTruthfulExpandedState()
   const error = await expect(page).toHaveTruthfulExpandedState().catch((thrown: Error) => thrown)
   expect(String(error)).toContain(
-    '#stale "Stale state": reports collapsed while its target #stale-panel is visible, after Enter (4.1.2)',
+    '#stale "Stale state": reports collapsed while its target #stale-panel is visible, after Enter (4.1.2) [expanded-state/state-contradicts-target]',
   )
   expect(String(error)).toMatch(/Measured in (chromium|firefox|webkit) [\d.]+ via Playwright\./)
 })
@@ -27,7 +27,8 @@ test('warnings pass by default and fail when asked to', async ({ page }) => {
   await expect(scope).toHaveTruthfulExpandedState()
   expect(test.info().annotations).toContainEqual({
     type: 'accessibility warning',
-    description: '- #dead "Does nothing": pressing Enter or Space and clicking changed neither its state nor its target #dead-panel (4.1.2)',
+    description:
+      '- #dead "Does nothing": pressing Enter or Space and clicking changed neither its state nor its target #dead-panel (4.1.2) [expanded-state/press-changes-nothing]',
   })
   await expect(scope).not.toHaveTruthfulExpandedState({ warnings: 'fail' })
 })

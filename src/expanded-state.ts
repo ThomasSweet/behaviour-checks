@@ -1,7 +1,8 @@
 import type { ElementHandle, Frame, Locator, Page } from '@playwright/test'
 
+import { defined } from './codes.js'
 import { animationsSettled, contextOf, describe, engineOf, focusOn, frameOf, rootsOf } from './page.js'
-import type { Finding, Severity } from './types.js'
+import type { CodeOf, Finding } from './types.js'
 
 const invokers = '[aria-expanded], button[popovertarget], input[popovertarget], button[commandfor]'
 
@@ -18,11 +19,12 @@ interface Reading {
   activatable: boolean
   tabStop: boolean
   inComposite: boolean
+  oneWay: boolean
 }
 
 type Activation = 'Enter' | 'Space' | 'click'
 
-function readInPage({ elements, restore }: { elements: Element[]; restore: (boolean | null)[] | null }) {
+function readInPage({ elements, restore, blink }: { elements: Element[]; restore: (boolean | null)[] | null; blink: boolean }) {
   const composite =
     '[role="toolbar"], [role="menubar"], [role="menu"], [role="grid"], [role="treegrid"], [role="tablist"], [role="tree"], [role="listbox"], [role="radiogroup"]'
   const shown = (node: Element) => {
@@ -38,19 +40,38 @@ function readInPage({ elements, restore }: { elements: Element[]; restore: (bool
     const root = element.getRootNode() as Document | ShadowRoot
     const byId = (id: string | null | undefined) =>
       id ? (root.getElementById(id) ?? element.ownerDocument.getElementById(id)) : null
-    const button = element as HTMLButtonElement & { commandForElement?: Element | null }
-    const popoverCommand = ['toggle-popover', 'show-popover', 'hide-popover'].includes(element.getAttribute('command') ?? '')
+    const button = element as HTMLButtonElement & { commandForElement?: Element | null; command?: string }
+    const keyword = ('command' in button ? String(button.command ?? '') : (element.getAttribute('command') ?? '')).toLowerCase()
     const controlled =
       (element.getAttribute('aria-controls') ?? '')
         .split(/\s+/)
         .map(byId)
         .find((node) => node) ?? null
-    const popover = element.hasAttribute('popovertarget')
-      ? (button.popoverTargetElement ?? byId(element.getAttribute('popovertarget')))
-      : null
-    const commanded = element.hasAttribute('commandfor')
-      ? (button.commandForElement ?? byId(element.getAttribute('commandfor')))
-      : null
+    const formAction =
+      (element instanceof HTMLButtonElement || element instanceof HTMLInputElement) &&
+      element.form !== null &&
+      ['submit', 'reset', 'image'].includes(element.type)
+    const invokes =
+      (element instanceof HTMLButtonElement ||
+        (element instanceof HTMLInputElement && ['button', 'submit', 'reset', 'image'].includes(element.type))) &&
+      !element.matches(':disabled') &&
+      !formAction
+    const popover =
+      invokes && element.hasAttribute('popovertarget')
+        ? (button.popoverTargetElement ?? byId(element.getAttribute('popovertarget')))
+        : null
+    const commanded =
+      invokes && element instanceof HTMLButtonElement && element.hasAttribute('commandfor') && 'commandForElement' in button
+        ? (button.commandForElement ?? null)
+        : null
+    const named =
+      commanded ??
+      (element.hasAttribute('commandfor') ? byId(element.getAttribute('commandfor')) : null) ??
+      (element.hasAttribute('popovertarget') ? byId(element.getAttribute('popovertarget')) : null)
+    const popoverCommand = commanded !== null && ['toggle-popover', 'show-popover', 'hide-popover'].includes(keyword)
+    const dialogCommand = ['show-modal', 'close', 'request-close'].includes(keyword)
+    const applies = keyword.startsWith('--') || popoverCommand || (dialogCommand && commanded instanceof HTMLDialogElement)
+    const runsCommand = commanded !== null && (blink ? applies : keyword !== '')
     const parent = element.parentElement
     const details =
       element.localName === 'summary' &&
@@ -58,13 +79,22 @@ function readInPage({ elements, restore }: { elements: Element[]; restore: (bool
       parent.querySelector(':scope > summary') === element
         ? parent
         : null
-    const target = controlled ?? popover ?? commanded ?? details
+    const target = controlled ?? (runsCommand ? commanded : null) ?? popover ?? named ?? details
 
-    const candidate = popover ?? (popoverCommand ? commanded : null)
+    const candidate = runsCommand ? (popoverCommand ? commanded : null) : popover
+    const holds = (container: Element) => {
+      for (let node: Node | null = element; node; node = node.parentNode ?? (node instanceof ShadowRoot ? node.host : null)) {
+        if (node === container) return true
+      }
+      return false
+    }
     const nativeTarget =
-      candidate instanceof HTMLElement && candidate.hasAttribute('popover') && !candidate.contains(element)
-        ? candidate
-        : null
+      candidate instanceof HTMLElement && candidate.hasAttribute('popover') && !holds(candidate) ? candidate : null
+    const action = popoverCommand
+      ? keyword.replace('-popover', '')
+      : nativeTarget
+        ? ((element as HTMLButtonElement).popoverTargetAction ?? element.getAttribute('popovertargetaction') ?? 'toggle').toLowerCase()
+        : 'toggle'
     const wanted = restore?.[index] ?? null
     if (wanted !== null) {
       try {
@@ -81,10 +111,6 @@ function readInPage({ elements, restore }: { elements: Element[]; restore: (bool
 
     const visible = !target ? null : target === details ? details.open && shown(details) : shown(target)
     const role = element.getAttribute('role')
-    const formAction =
-      (element instanceof HTMLButtonElement || element instanceof HTMLInputElement) &&
-      element.form !== null &&
-      ['submit', 'reset', 'image'].includes(element.type)
     const buttonLike =
       element instanceof HTMLButtonElement
         ? true
@@ -103,6 +129,7 @@ function readInPage({ elements, restore }: { elements: Element[]; restore: (bool
       activatable: buttonLike && !formAction && !disabled && !element.closest('[inert]') && shown(element),
       tabStop: element instanceof HTMLElement && element.tabIndex >= 0,
       inComposite: element.closest(composite) !== null,
+      oneWay: native !== null && ((action === 'hide' && !native) || (action === 'show' && native)),
     }
   })
 }
@@ -145,13 +172,14 @@ export async function findExpandedStateMismatches(page: Page, options: ExpandedS
   const handles = (await Promise.all(roots.map((root) => root.$$(invokers)))).flat()
   const frame: Frame = await frameOf(page, handles[0])
   const context = contextOf(page)
-  const chromium = engineOf(page) === 'chromium' && frame === page.mainFrame()
+  const blink = engineOf(page) === 'chromium'
+  const chromium = blink && frame === page.mainFrame()
   const findings: Finding[] = []
 
   const readAll = (restore: (boolean | null)[] | null = null) =>
-    frame.evaluate(readInPage, { elements: handles as ElementHandle<Element>[], restore })
+    frame.evaluate(readInPage, { elements: handles as ElementHandle<Element>[], restore, blink })
   const read = async (handle: ElementHandle) =>
-    (await frame.evaluate(readInPage, { elements: [handle as ElementHandle<Element>], restore: null }).catch(() => [null]))[0]
+    (await frame.evaluate(readInPage, { elements: [handle as ElementHandle<Element>], restore: null, blink }).catch(() => [null]))[0]
 
   const press = async (handle: ElementHandle, how: Activation) => {
     if (how === 'click') {
@@ -182,14 +210,14 @@ export async function findExpandedStateMismatches(page: Page, options: ExpandedS
     return { how: same(now, before) ? null : ('click' as const), after: now, focused }
   }
 
-  const report = async (handle: ElementHandle, severity: Severity, criteria: string[], what: string) => {
-    findings.push({ check: 'expanded-state', severity, criteria, element: await describe(handle), what, context })
+  const report = async (handle: ElementHandle, code: CodeOf<'expanded-state'>, what: string) => {
+    findings.push({ check: 'expanded-state', code, ...defined(code), element: await describe(handle), what, context })
   }
 
   const assess = async (handle: ElementHandle, reading: Reading, when: string) => {
     const wrong = mismatch(reading, when)
     if (wrong) {
-      await report(handle, 'failure', ['4.1.2'], wrong)
+      await report(handle, 'expanded-state/state-contradicts-target', wrong)
       return true
     }
     if (reading.native === null) return false
@@ -199,19 +227,17 @@ export async function findExpandedStateMismatches(page: Page, options: ExpandedS
     if (reading.stated !== null && reading.stated !== reading.native) {
       const where = `its aria-expanded attribute ${says(reading.stated)} while ${state}`
       if (tree === reading.stated) {
-        await report(handle, 'failure', ['4.1.2'], `${where}, and the browser's accessibility tree follows the attribute`)
+        await report(handle, 'expanded-state/aria-expanded-overrides-native-state', `${where}, and the browser's accessibility tree follows the attribute`)
       } else if (tree === reading.native) {
         await report(
           handle,
-          'warning',
-          ['4.1.2'],
+          'expanded-state/aria-expanded-contradicts-native-state',
           `${where}. Chromium's accessibility tree ignores the attribute and follows the native state; other engines may not, so remove it`,
         )
       } else {
         await report(
           handle,
-          'warning',
-          ['4.1.2'],
+          'expanded-state/aria-expanded-contradicts-native-state',
           `${where}. A native invoker carries its own state, and this engine's accessibility tree cannot be read here, so remove the attribute`,
         )
       }
@@ -219,13 +245,22 @@ export async function findExpandedStateMismatches(page: Page, options: ExpandedS
     }
 
     if (tree !== null && tree !== reading.native) {
-      await report(handle, 'warning', [], `the browser's accessibility tree ${says(tree)} while ${state}: the browser's mapping, not the page's`)
+      await report(
+        handle,
+        'expanded-state/browser-misreports-native-state',
+        `the browser's accessibility tree ${says(tree)} while ${state}: the browser's mapping, not the page's`,
+      )
       return true
     }
     return false
   }
 
-  const startFocus = await frame.evaluateHandle(() => document.activeElement)
+  const startFocus = await frame.evaluateHandle(() => {
+    let element = document.activeElement
+    while (element?.shadowRoot?.activeElement) element = element.shadowRoot.activeElement
+    return element
+  })
+  await animationsSettled(frame)
   const snapshot = await readAll()
   const wanted = snapshot.map((reading) => reading?.native ?? null)
 
@@ -237,7 +272,9 @@ export async function findExpandedStateMismatches(page: Page, options: ExpandedS
     now = await readAll(wanted)
     for (const [index, handle] of handles.entries()) {
       const reading = now[index]
-      if (same(reading, snapshot[index]) || !reading?.activatable) continue
+      const before = snapshot[index]
+      if (!reading?.activatable || before?.reported === null || before?.reported === undefined) continue
+      if (reading.reported === before.reported) continue
       if (!(await press(handle, 'Enter'))) await press(handle, 'click')
     }
   }
@@ -246,33 +283,29 @@ export async function findExpandedStateMismatches(page: Page, options: ExpandedS
     const rest = await read(handle)
     if (!rest || rest.reported === null || !snapshot[index]) continue
     if (await assess(handle, rest, 'at rest')) continue
-    if (!rest.activatable) continue
+    if (!rest.activatable || rest.oneWay) continue
 
     const { how, after, focused } = await activate(handle, rest)
     if (after && how === null) {
+      const tried = focused ? 'pressing Enter or Space and clicking' : 'it cannot take focus, and clicking'
       await report(
         handle,
-        'warning',
-        ['4.1.2'],
+        'expanded-state/press-changes-nothing',
         rest.target
-          ? `pressing Enter or Space and clicking changed neither its state nor its target ${rest.target}`
-          : 'pressing Enter or Space and clicking did not change its state, and it names no target to compare with',
+          ? `${tried} changed neither its state nor its target ${rest.target}`
+          : `${tried} did not change its state, and it names no target to compare with`,
       )
     } else if (after && how) {
       if (how === 'click') {
-        await report(
-          handle,
-          'failure',
-          ['2.1.1'],
-          focused
-            ? 'Enter and Space changed nothing, a click did: only a pointer operates it'
-            : 'it cannot take focus, so the keyboard cannot reach it; a click operates it',
-        )
+        if (focused) {
+          await report(handle, 'expanded-state/pointer-only', 'Enter and Space changed nothing, a click did: only a pointer operates it')
+        } else {
+          await report(handle, 'expanded-state/cannot-take-focus', 'it cannot take focus, so the keyboard cannot reach it; a click operates it')
+        }
       } else if (!rest.tabStop && !rest.inComposite) {
         await report(
           handle,
-          'failure',
-          ['2.1.1'],
+          'expanded-state/not-a-tab-stop',
           `${how} operates it, but it is not a tab stop and sits in no widget that moves focus with arrow keys, so the keyboard cannot reach it`,
         )
       }
@@ -285,8 +318,17 @@ export async function findExpandedStateMismatches(page: Page, options: ExpandedS
 
   await frame
     .evaluate((element) => {
-      if (element instanceof HTMLElement && element !== document.body) element.focus()
-      else (document.activeElement as HTMLElement | null)?.blur()
+      const deepest = () => {
+        let focused = document.activeElement
+        while (focused?.shadowRoot?.activeElement) focused = focused.shadowRoot.activeElement
+        return focused
+      }
+      if ((element instanceof HTMLElement || element instanceof SVGElement) && element !== document.body) {
+        element.focus()
+        if (deepest() === element) return
+      }
+      const focused = deepest()
+      if (focused instanceof HTMLElement || focused instanceof SVGElement) focused.blur()
     }, startFocus)
     .catch(() => undefined)
   for (const handle of handles) await handle.dispose()

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a modal dialog that leaves focus on its opener</title>
+  </head>
+  <body>
+    <div id="page">
+      <main>
+        <h1>A modal dialog that leaves focus on its opener</h1>
+        <button id="open" type="button">Open the dialog</button>
+      </main>
+    </div>
+    <div id="stay" role="dialog" aria-modal="true" aria-labelledby="stay-title" hidden>
+      <h2 id="stay-title">Focus never comes here</h2>
+      <button id="stay-ok" type="button">OK</button>
+      <button id="stay-close" type="button">Close</button>
+    </div>
+    <script>
+      const dialog = document.getElementById('stay')
+      const page = document.getElementById('page')
+      const opener = document.getElementById('open')
+      const close = () => {
+        dialog.hidden = true
+        page.inert = false
+        opener.focus()
+      }
+      opener.addEventListener('click', () => {
+        dialog.hidden = false
+        page.inert = true
+      })
+      document.getElementById('stay-close').addEventListener('click', close)
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !dialog.hidden) close()
+      })
+    </script>
+  </body>
+</html>

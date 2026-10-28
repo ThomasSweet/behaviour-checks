@@ -15,8 +15,9 @@ elsewhere.
 
 ## Setup
 
-You need Node 24 or later and npm 11.16 or later for development. The
-package itself supports older Node releases; see the README.
+You need Node 24 or later and npm 11.16 or a later 11.x release for
+development. The package itself supports older Node releases; see the
+README.
 
 ```bash
 npm ci
@@ -36,8 +37,16 @@ tests in it after a change.
 
 ## Rules for a change
 
-- **Every finding has a fixture.** A page in `fixtures/` that passes, and one
-  that fails on purpose, with a test that names the expected finding.
+- **Every code has a fixture.** A page in `fixtures/` that produces it on
+  purpose, with a test that names the expected code. Passing pages prove the
+  absence of findings. Two codes have none, because no engine has produced
+  them on any page we tried: `expanded-state/aria-expanded-overrides-native-state`
+  and `expanded-state/browser-misreports-native-state` need a Chromium whose
+  accessibility tree disagrees with the native state of a real invoker.
+- **A code is never renamed or reused.** A new kind of finding gets a new
+  code in `src/codes.ts`, `src/types.ts` and the README tables.
+  `tests/codes.spec.ts` checks the README tables against `src/codes.ts`, and
+  `npm run typecheck` checks `src/codes.ts` against `src/types.ts`.
 - **A fix comes with a regression test** that fails without the fix.
 - **Run all three engines.** When they behave differently, measure it, then
   add it to the README's engine notes with the date and the versions.
@@ -60,9 +69,11 @@ Releases are published by the Release workflow, never from a laptop.
    `npm version <version> --no-git-tag-version` and date its section in
    `CHANGELOG.md`.
 2. After it merges, create a GitHub release whose tag is the version with a
-   `v` in front, such as `v0.1.1`.
+   `v` in front, such as `v0.2.0`.
 3. The Release workflow runs every CI check on that tag, stops if the tag and
-   `package.json` disagree, and publishes to npm through trusted publishing.
+   `package.json` disagree, waits for a maintainer to approve the deployment
+   to the `npm` environment on the run's page, and publishes to npm through
+   trusted publishing.
    npm adds a provenance statement that links the version to its commit and
    workflow run.
 

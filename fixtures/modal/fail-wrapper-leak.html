@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a focusable wrapper around the page and its dialog</title>
+  </head>
+  <body>
+    <div id="app" tabindex="0">
+      <nav id="nav"><a href="#home">Home</a></nav>
+      <main id="main">
+        <h1>A focusable wrapper around the page and its dialog</h1>
+        <button id="open" type="button">Open the dialog</button>
+        <a href="#after">A link after</a>
+      </main>
+      <div id="wrapped" role="dialog" aria-modal="true" aria-labelledby="wrapped-title" hidden>
+        <h2 id="wrapped-title">A dialog inside the wrapper</h2>
+        <button id="wrapped-ok" type="button">OK</button>
+        <button id="wrapped-close" type="button">Close</button>
+      </div>
+    </div>
+    <script>
+      const dialog = document.getElementById('wrapped')
+      const opener = document.getElementById('open')
+      const behind = [document.getElementById('nav'), document.getElementById('main')]
+      const close = () => {
+        dialog.hidden = true
+        for (const node of behind) node.inert = false
+        opener.focus()
+      }
+      opener.addEventListener('click', () => {
+        dialog.hidden = false
+        for (const node of behind) node.inert = true
+        document.getElementById('wrapped-ok').focus()
+      })
+      document.getElementById('wrapped-close').addEventListener('click', close)
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !dialog.hidden) close()
+      })
+    </script>
+  </body>
+</html>

@@ -1,5 +1,12 @@
 import { expect as base, test } from '@playwright/test'
-import { expect, findUntiedErrors, matchers, type Finding } from '@accessible-by-default/checks'
+import {
+  expect,
+  findExpandedStateMismatches,
+  findUntiedErrors,
+  matchers,
+  type Finding,
+  type FindingCode,
+} from '@accessible-by-default/checks'
 
 const extended = base.extend({ ...matchers })
 
@@ -21,5 +28,15 @@ test('import loads the package, and all three matchers pass a page that keeps it
   })
   await extended(page.locator('form')).toHaveErrorsTiedToFields()
   const findings: Finding[] = await findUntiedErrors(page)
-  expect(findings).toEqual([])
+  const codes: FindingCode[] = findings.map((finding) => finding.code)
+  expect(codes).toEqual([])
+})
+
+test('import gives each finding its code', async ({ page }) => {
+  await page.setContent(`
+    <button aria-expanded="false" aria-controls="panel">More</button>
+    <div id="panel">Already showing</div>
+  `)
+  const codes: FindingCode[] = (await findExpandedStateMismatches(page)).map((finding) => finding.code)
+  expect(codes).toContain('expanded-state/state-contradicts-target')
 })

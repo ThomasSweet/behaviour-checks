@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a dialog whose buttons live in its own shadow root</title>
+  </head>
+  <body>
+    <main>
+      <h1>A dialog whose buttons live in its own shadow root</h1>
+      <a href="#before" id="before">A link before</a>
+      <button id="open" type="button" aria-controls="tools">Open the tools</button>
+      <x-tools id="tools" role="dialog" aria-modal="true" aria-label="Tools" hidden></x-tools>
+      <a href="#after" id="after">A link after</a>
+    </main>
+    <script>
+      customElements.define(
+        'x-tools',
+        class extends HTMLElement {
+          constructor() {
+            super()
+            this.attachShadow({ mode: 'open' }).innerHTML = '<h2>Tools</h2><button id="one">One</button><button id="two">Two</button>'
+          }
+        },
+      )
+      const dialog = document.getElementById('tools')
+      const opener = document.getElementById('open')
+      opener.addEventListener('click', () => {
+        dialog.hidden = false
+        dialog.shadowRoot.getElementById('one').focus()
+      })
+      dialog.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return
+        dialog.hidden = true
+        opener.focus()
+      })
+    </script>
+  </body>
+</html>

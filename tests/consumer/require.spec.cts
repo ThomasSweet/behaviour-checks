@@ -8,8 +8,9 @@ test('require() loads the package, and a lying disclosure fails', async ({ page 
   `)
   await expect(page).not.toHaveTruthfulExpandedState()
   const findings = await findExpandedStateMismatches(page)
-  expect(findings.map(({ check, severity, criteria }) => ({ check, severity, criteria }))).toContainEqual({
+  expect(findings.map(({ check, code, severity, criteria }) => ({ check, code, severity, criteria }))).toContainEqual({
     check: 'expanded-state',
+    code: 'expanded-state/state-contradicts-target',
     severity: 'failure',
     criteria: ['4.1.2'],
   })

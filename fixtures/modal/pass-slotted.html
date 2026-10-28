@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a dialog in a shadow root that shows slotted content</title>
+  </head>
+  <body>
+    <main>
+      <h1>A dialog in a shadow root that shows slotted content</h1>
+      <a href="#before">A link before</a>
+      <x-sheet>
+        <h2>Share</h2>
+        <a href="#copy">Copy the link</a>
+        <button type="button">Send by email</button>
+      </x-sheet>
+      <a href="#after">A link after</a>
+    </main>
+    <script>
+      customElements.define(
+        'x-sheet',
+        class extends HTMLElement {
+          constructor() {
+            super()
+            const root = this.attachShadow({ mode: 'open' })
+            root.innerHTML =
+              '<button id="open" type="button" aria-controls="sheet">Share this page</button>' +
+              '<dialog id="sheet" aria-label="Share"><slot></slot><button id="close" type="button">Close</button></dialog>'
+            const dialog = root.getElementById('sheet')
+            root.getElementById('open').addEventListener('click', () => dialog.showModal())
+            root.getElementById('close').addEventListener('click', () => dialog.close())
+          }
+        },
+      )
+    </script>
+  </body>
+</html>
