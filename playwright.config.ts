@@ -1,6 +1,11 @@
+import { mkdirSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { defineConfig, devices } from '@playwright/test'
 
 const site = process.env.SITE_DIR
+const firefoxHome = process.platform === 'darwin' ? join(tmpdir(), 'playwright-firefox-home') : null
+if (firefoxHome) mkdirSync(firefoxHome, { recursive: true })
 
 export default defineConfig({
   testDir: 'tests',
@@ -14,7 +19,13 @@ export default defineConfig({
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    {
+      name: 'firefox',
+      use: {
+        ...devices['Desktop Firefox'],
+        launchOptions: firefoxHome ? { env: { ...process.env, CFFIXED_USER_HOME: firefoxHome } } : {},
+      },
+    },
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
   ],
   webServer: [
