@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expanded state: toggles behind a modal dialog</title>
+  </head>
+  <body>
+    <main>
+      <h1>Toggles behind a modal dialog</h1>
+
+      <button id="behind" aria-expanded="false" aria-controls="behind-panel">Behind the dialog</button>
+      <div id="behind-panel" hidden>Never reached.</div>
+
+      <dialog id="modal">
+        <button id="inside" aria-expanded="false" aria-controls="inside-panel">In the dialog</button>
+        <div id="inside-panel" hidden>Opens, but the button never says so.</div>
+      </dialog>
+    </main>
+    <script>
+      document.getElementById('modal').showModal()
+      document.getElementById('inside').addEventListener('click', () => {
+        const panel = document.getElementById('inside-panel')
+        panel.hidden = !panel.hidden
+      })
+    </script>
+  </body>
+</html>

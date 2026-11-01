@@ -201,3 +201,70 @@ test('focus that starts in a closed shadow root is not left on a widget the chec
   await findExpandedStateMismatches(page)
   expect(await page.evaluate(() => document.activeElement?.id ?? '')).not.toBe('disclosure')
 })
+
+test('a plain element that reports a state is reported, and never pressed', async ({ page }) => {
+  await page.goto('/expanded-state/no-role.html')
+  const findings = await findExpandedStateMismatches(page)
+  expect(summary(findings), JSON.stringify(findings, null, 2)).toEqual([
+    'expanded-state/state-contradicts-target failure 4.1.2 #wrong-at-rest',
+    'expanded-state/state-has-no-role warning 4.1.2 #missing-target',
+    'expanded-state/state-has-no-role warning 4.1.2 #no-target',
+    'expanded-state/state-has-no-role warning 4.1.2 #wrapper',
+    'expanded-state/toggle-has-no-role failure 4.1.2 #click-only',
+    'expanded-state/toggle-has-no-role failure 4.1.2 #heading',
+    'expanded-state/toggle-has-no-role failure 4.1.2 #keyboard',
+    'expanded-state/toggle-has-no-role failure 4.1.2 #no-href',
+  ])
+  const what = (selector: string) => findings.find((finding) => finding.element.selector === selector)?.what
+  expect(what('#click-only')).toBe(
+    'it reports a state and names its target #click-only-panel, but it has no role attribute and is not a native control, so assistive technology is not told it can be operated. The check does not press it',
+  )
+  expect(what('#no-target')).toBe(
+    'it reports a state and names no target on the page, but it has no role attribute and is not a native control. The check does not press it',
+  )
+  expect(await page.evaluate(() => (window as unknown as { pressed: string[] }).pressed)).toEqual([])
+  await expect(page).toHaveURL(/no-role\.html$/)
+})
+
+test('a native control, a table part, an element with a role or a custom element is not reported', async ({ page }) => {
+  await page.goto('/expanded-state/no-role.html')
+  const findings = await findExpandedStateMismatches(page, { within: page.locator('#has-a-role') })
+  expect(findings, JSON.stringify(findings, null, 2)).toEqual([])
+  expect(await page.evaluate(() => (window as unknown as { pressed: string[] }).pressed)).toEqual([])
+})
+
+test('a control Playwright cannot click is reported as that, not as a click that changed nothing', async ({ page }) => {
+  await page.goto('/expanded-state/covered.html')
+  const findings = await findExpandedStateMismatches(page)
+  expect(summary(findings), JSON.stringify(findings, null, 2)).toEqual([
+    'expanded-state/could-not-click warning  #dead',
+    'expanded-state/could-not-click warning  #focusable',
+    'expanded-state/could-not-click warning  #unfocusable',
+  ])
+  const what = (selector: string) => findings.find((finding) => finding.element.selector === selector)?.what
+  expect(what('#focusable')).toBe('Enter and Space changed nothing and Playwright could not click it, so the check cannot tell whether a click operates it')
+  expect(what('#unfocusable')).toBe('it cannot take focus and Playwright could not click it, so the check could not operate it')
+  expect(await page.evaluate(() => (window as unknown as { coverClicks: number }).coverClicks)).toBe(0)
+  await expect(page.locator('#keyboard-panel')).toBeHidden()
+})
+
+test('a control that Enter puts out of reach is not said to have had Space or a click', async ({ page }) => {
+  await page.goto('/expanded-state/out-of-reach.html')
+  const findings = await findExpandedStateMismatches(page)
+  expect(summary(findings), JSON.stringify(findings, null, 2)).toEqual([
+    'expanded-state/press-changes-nothing warning 4.1.2 #disables',
+    'expanded-state/press-changes-nothing warning 4.1.2 #hides',
+  ])
+  const what = (selector: string) => findings.find((finding) => finding.element.selector === selector)?.what
+  expect(what('#hides')).toBe('Enter changed neither its state nor its target #hides-panel, and left it out of reach')
+  expect(what('#disables')).toBe('Enter did not change its state and left it out of reach, and it names no target to compare with')
+})
+
+test('a toggle behind an open modal dialog is not called dead, and one inside it is still checked', async ({ page }) => {
+  await page.goto('/expanded-state/behind-modal.html')
+  const findings = await findExpandedStateMismatches(page)
+  expect(summary(findings), JSON.stringify(findings, null, 2)).toEqual([
+    'expanded-state/could-not-click warning  #behind',
+    'expanded-state/state-contradicts-target failure 4.1.2 #inside',
+  ])
+})

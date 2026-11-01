@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expanded state: controls that Enter puts out of reach</title>
+  </head>
+  <body>
+    <main>
+      <h1>Controls that Enter puts out of reach</h1>
+
+      <button id="hides" aria-expanded="false" aria-controls="hides-panel">Hides itself</button>
+      <div id="hides-panel" hidden>Never shown.</div>
+
+      <button id="disables" aria-expanded="false">Disables itself</button>
+    </main>
+    <script>
+      document.getElementById('hides').addEventListener('click', (event) => {
+        event.currentTarget.hidden = true
+      })
+      document.getElementById('disables').addEventListener('click', (event) => {
+        event.currentTarget.disabled = true
+      })
+    </script>
+  </body>
+</html>

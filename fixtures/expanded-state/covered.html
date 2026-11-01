@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expanded state: toggles a click cannot reach</title>
+    <style>
+      .cover {
+        position: fixed;
+        inset: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Toggles a click cannot reach</h1>
+
+      <div id="focusable" role="button" tabindex="0" aria-expanded="false" aria-controls="focusable-panel">Takes focus, ignores keys</div>
+      <div id="focusable-panel" hidden>Only a click opens this.</div>
+
+      <div id="unfocusable" role="button" aria-expanded="false" aria-controls="unfocusable-panel">Cannot take focus</div>
+      <div id="unfocusable-panel" hidden>Only a click opens this.</div>
+
+      <button id="keyboard" aria-expanded="false" aria-controls="keyboard-panel">Keys work</button>
+      <div id="keyboard-panel" hidden>Enter opens this.</div>
+
+      <button id="dead" aria-expanded="false" aria-controls="dead-panel">Does nothing</button>
+      <div id="dead-panel" hidden>Nothing opens this.</div>
+
+      <div id="cover" class="cover"></div>
+    </main>
+    <script>
+      for (const id of ['focusable', 'unfocusable', 'keyboard']) {
+        const control = document.getElementById(id)
+        control.addEventListener('click', () => {
+          const open = control.getAttribute('aria-expanded') !== 'true'
+          control.setAttribute('aria-expanded', String(open))
+          document.getElementById(`${id}-panel`).hidden = !open
+        })
+      }
+
+      window.coverClicks = 0
+      document.getElementById('cover').addEventListener('click', () => window.coverClicks++)
+    </script>
+  </body>
+</html>

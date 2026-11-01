@@ -4,6 +4,34 @@ Notable changes to `@accessible-by-default/checks`. Versions follow
 [Semantic Versioning](https://semver.org). While the version starts with 0,
 a minor release can change what a check reports.
 
+## 0.3.0 (2026-11-01)
+
+This release changes what the checks report. If your tests assert exact
+findings, read this list before you upgrade.
+
+- A rendered element with `aria-expanded` that has no `role` attribute and is
+  not a native control or a table row or cell, such as a `div` with a click
+  handler, is now reported. Before, it was compared at rest and then passed,
+  however it behaved. It is still never pressed: nothing in the markup says
+  what a press on it would do. If it names a target on the page, it gets the
+  failure `expanded-state/toggle-has-no-role`. If it does not, it may be a
+  toggle or a stray attribute, so it gets the warning
+  `expanded-state/state-has-no-role`. A custom element is left out, because
+  `ElementInternals` can give it a role that a page cannot read, and so is an
+  element under `inert` or `aria-hidden="true"`.
+- If nothing changed and Playwright could not click the control, it now gets
+  the warning `expanded-state/could-not-click`. Before, the failed click was
+  ignored and the warning `expanded-state/press-changes-nothing` said that
+  clicking had changed nothing, although no click had landed. This covers a
+  toggle under an overlay and a toggle behind an open modal dialog.
+- A control that Enter hides, disables or takes focus from keeps
+  `expanded-state/press-changes-nothing`, and `what` now says which key was
+  pressed and that it was left out of reach. Before, it claimed a Space press
+  and a click that had not happened.
+- `modal-walk/no-dialog-opens` now says what was tried. Before, it said a
+  click had opened nothing when no click had landed, and that Enter had opened
+  nothing when the opener could not take focus, so Enter was never pressed.
+
 ## 0.2.0 (2026-10-28)
 
 This release changes what the checks report. If your tests assert exact

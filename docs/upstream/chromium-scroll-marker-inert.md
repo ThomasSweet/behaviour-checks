@@ -4,14 +4,16 @@ Draft for Thomas to file at https://issues.chromium.org/issues/new,
 component Blink>CSS. Not filed. Measured on 28 October 2026 with Playwright
 1.64.1 (Chromium 156.0.8078.4, headless shell and channel `chromium`) on
 macOS. Two independent runs, with different fixtures, agree on everything
-below.
+below, except what happens after the dialog closes: that was measured on 1
+November 2026 on the repro, same build, headless shell only.
 
 ## Before you file
 
 1. Open the repro in a real Chrome window and press Tab yourself. In a real
    window, Tab past the last control goes to the browser toolbar, which the
    headless runs could not show. The `focusin` line in step 2 makes the
-   brief focus visible in the console.
+   brief focus visible in the console. Then close the dialog and Tab again,
+   to confirm the markers are skipped.
 2. Search the tracker again for `scroll-marker inert`, `scroll-marker
    dialog` and `scroll-marker focus`. On 28 October nothing matched.
 3. Attach the repro below as `repro.html`.
@@ -59,6 +61,11 @@ the scroll container itself.
   markers are skipped. Shift+Tab does the same in reverse on the first lap.
 - It happens again on every opening: open, Escape, reopen, three times, and
   each time the first three Tab presses reach the three markers.
+- After the dialog closes, the markers are skipped, whether or not any were
+  reached while it was open. Three Tab laps, a Shift+Tab lap and a 2 second
+  wait did not bring them back. Setting a style on the carousel brought back
+  all three. Scrolling to slide 2 brought back markers 1 and 2, whose
+  `:target-current` state changed, but not marker 3.
 - If the Enter or Space keydown arrives before Chromium drops focus, it
   activates the inert marker and scrolls the inert carousel while the dialog
   stays open. With the repro as attached and the page idle, Playwright's
@@ -81,16 +88,23 @@ When it happens:
 - Only `::scroll-marker` is affected. The `::scroll-button()`s and the
   scroll container were never reached behind the dialog in any variant.
 
-A live example: on https://accessible-by-default.dev/showcase.html, with
-"Open the dialog" open, the first lap of Tab stops one to five times on the
-page's carousel markers.
+A real page showed this too. On the showcase page of accessible-by-default.dev
+on 29 October 2026, with a modal dialog open, the first lap of Tab stopped one
+to five times on the page's carousel markers, and the first lap after the
+dialog closed skipped them. On that page it showed only under
+`prefers-reduced-motion: reduce`. The repro behaves the same with or without
+it, and why the page differs was not checked. Since 31 October the page sets
+`scroll-marker-group: none` while a modal dialog is open, so it no longer
+reproduces.
 
 A possible cause, not checked against the code: commit 283387d ("Don't allow
 interactivity to escape inertness", crbug 370065759) made `::scroll-marker`
 take its inertness from its `::scroll-marker-group`. When inertness arrives
 later, the markers' computed inertness seems not to update until something
 restyles them, and focusing a marker does restyle it, which would explain
-why the next lap skips it.
+why the next lap skips it. After the dialog closes a restyle clears the skip
+too, but the skip also happens when no marker was focused, so focusing is not
+the only thing that updates them.
 
 ## Versions
 
