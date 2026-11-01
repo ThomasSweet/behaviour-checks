@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expanded state: toggles that are not rendered</title>
+    <style>
+      .clipped {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
+      @media (min-width: 600px) {
+        .hamburger {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Toggles that are not rendered</h1>
+
+      <section id="not-rendered">
+        <button id="display-none" style="display: none" aria-expanded="false" aria-controls="display-none-panel" data-watched>Menu</button>
+        <div id="display-none-panel">Shown at this width.</div>
+
+        <button id="visibility-hidden" style="visibility: hidden" aria-expanded="true" aria-controls="visibility-hidden-panel" data-watched>Menu</button>
+        <div id="visibility-hidden-panel" hidden>Hidden.</div>
+
+        <div hidden>
+          <button id="in-hidden" aria-expanded="false" aria-controls="in-hidden-panel" data-watched>Menu</button>
+        </div>
+        <div id="in-hidden-panel">Shown at this width.</div>
+
+        <details>
+          <summary>Outer</summary>
+          <details open>
+            <summary id="nested" aria-expanded="true" data-watched>Inner</summary>
+            <p>Inside a closed disclosure.</p>
+          </details>
+        </details>
+      </section>
+
+      <section id="responsive">
+        <button id="hamburger" class="hamburger" aria-expanded="false" aria-controls="menu" data-watched>Menu</button>
+        <nav id="menu"><a href="#menu">A link</a></nav>
+      </section>
+
+      <section id="only-invisible">
+        <button id="transparent" style="opacity: 0" aria-expanded="false" aria-controls="transparent-panel">Menu</button>
+        <div id="transparent-panel">A screen reader still gets the button.</div>
+
+        <button id="clipped" class="clipped" aria-expanded="false" aria-controls="clipped-panel">Menu</button>
+        <div id="clipped-panel">A screen reader still gets the button.</div>
+      </section>
+    </main>
+    <script>
+      window.pressed = []
+      for (const element of document.querySelectorAll('[data-watched]')) {
+        element.addEventListener('click', () => window.pressed.push(element.id))
+      }
+    </script>
+  </body>
+</html>

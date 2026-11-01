@@ -4,6 +4,14 @@ Notable changes to `@accessible-by-default/checks`. Versions follow
 [Semantic Versioning](https://semver.org). While the version starts with 0,
 a minor release can change what a check reports.
 
+## 0.4.1 (2026-11-01)
+
+- A toggle that is not rendered, such as a hamburger hidden on desktop, is no
+  longer compared with its target. Before, it failed
+  `expanded-state/state-contradicts-target` beside a menu that was rightly
+  visible. A toggle that is only transparent or clipped is still compared,
+  because a screen reader still gets it.
+
 ## 0.4.0 (2026-11-01)
 
 This release changes what the checks report. If your tests assert exact
