@@ -29,6 +29,7 @@ export type FindingCode =
   | 'error-association/tied-message-is-empty'
   | 'error-association/tied-message-is-hidden'
   | 'error-association/visible-error-is-not-tied'
+  | 'error-association/error-among-several-fields'
 
 export type CodeOf<Check extends CheckName> = Extract<FindingCode, `${Check}/${string}`>
 

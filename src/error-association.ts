@@ -96,7 +96,7 @@ function findProblemsInPage(root: Element, errorsSelector: string) {
     (node) =>
       shown(node) &&
       text(node) &&
-      !node.matches(`${fieldSelector}, ${notHeadings}, form, fieldset, label, legend`) &&
+      !node.matches(`${fieldSelector}, ${notHeadings}, form, fieldset, label, legend, button, a[href], [role="button"], [role="link"]`) &&
       !node.querySelector(fieldSelector) &&
       !node.querySelector('a[href]'),
   )
@@ -105,14 +105,22 @@ function findProblemsInPage(root: Element, errorsSelector: string) {
   for (const message of messages) {
     if (tied(message)) continue
     let group: Element[] = []
+    let among = false
     for (let node = message.parentElement; node && !node.matches(landmarks); node = node.parentElement) {
       const found = [...node.querySelectorAll(fieldSelector)].filter((field) => fieldShown(field) && !field.matches(containers))
       if (found.length) {
         const names = new Set(found.map((field) => field.getAttribute('name') ?? field))
         group = names.size === 1 ? found : []
+        among = names.size > 1 && found.some((field) => (field.closest('label') ?? field).parentElement === node)
         break
       }
       if (node === root || node.matches(edges)) break
+    }
+    if (among) {
+      problems.set(message, {
+        code: 'error-association/error-among-several-fields',
+        what: `the error ${quote(message)} sits among several fields and is tied to none of them. The check does not guess which one it belongs to. If it is about the whole form, nothing is wrong`,
+      })
     }
     const field = group[0]
     if (!field) continue

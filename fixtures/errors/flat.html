@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Errors tied to fields: flat forms</title>
+  </head>
+  <body>
+    <main>
+      <h1>Forms with no wrapper per field</h1>
+
+      <form id="flat">
+        <label for="email">Email</label>
+        <input id="email" name="email" aria-invalid="true" />
+        <label for="name">Name</label>
+        <input id="name" name="name" />
+        <p class="error">Name is required.</p>
+        <button type="submit">Send</button>
+      </form>
+
+      <form id="labels">
+        <label>Town <input name="town" /></label>
+        <span class="error">Enter a town</span>
+        <label>Street <input name="street" /></label>
+      </form>
+
+      <form id="row">
+        <div class="field">
+          <div class="dates">
+            <label for="from">From</label>
+            <input id="from" name="from" />
+            <label for="to">To</label>
+            <input id="to" name="to" />
+            <p class="error">The end date is before the start date</p>
+          </div>
+        </div>
+        <div class="field">
+          <label for="notes">Notes</label>
+          <input id="notes" name="notes" />
+        </div>
+      </form>
+
+      <form id="tied">
+        <label for="tied-email">Email</label>
+        <input id="tied-email" name="tied-email" aria-invalid="true" aria-describedby="tied-email-error" />
+        <p id="tied-email-error" class="error">Enter an email address</p>
+        <label for="tied-name">Name</label>
+        <input id="tied-name" name="tied-name" />
+      </form>
+
+      <form id="wrapped">
+        <p class="error">Could not send your message. Try again.</p>
+        <div class="field">
+          <label for="wrapped-email">Email</label>
+          <input id="wrapped-email" name="wrapped-email" />
+        </div>
+        <div class="field">
+          <label for="wrapped-name">Name</label>
+          <input id="wrapped-name" name="wrapped-name" />
+        </div>
+      </form>
+
+      <form id="radios">
+        <p>Size</p>
+        <label><input type="radio" name="size" value="small" /> Small</label>
+        <label><input type="radio" name="size" value="large" /> Large</label>
+        <p class="error">Choose a size</p>
+      </form>
+
+      <form id="controls">
+        <label for="code">Code</label>
+        <input id="code" name="code" />
+        <button type="button" class="btn-error">Delete</button>
+        <a class="link-error" href="#controls">Report a problem</a>
+      </form>
+
+      <form id="controls-flat">
+        <label for="first">First name</label>
+        <input id="first" name="first" />
+        <label for="last">Last name</label>
+        <input id="last" name="last" />
+        <button type="button" class="btn-error">Delete</button>
+        <a class="link-error" href="#controls-flat">Report a problem</a>
+      </form>
+    </main>
+  </body>
+</html>

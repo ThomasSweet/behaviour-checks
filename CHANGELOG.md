@@ -4,6 +4,26 @@ Notable changes to `@accessible-by-default/checks`. Versions follow
 [Semantic Versioning](https://semver.org). While the version starts with 0,
 a minor release can change what a check reports.
 
+## 0.4.0 (2026-11-01)
+
+This release changes what the checks report. If your tests assert exact
+findings, read this list before you upgrade.
+
+- An error that sits directly among several fields and is tied to none of
+  them now gets the warning `error-association/error-among-several-fields`.
+  Before, a form with no wrapper around each field passed this half of the
+  check without a word. The finding names the error and no field, because
+  the markup does not say which field it belongs to, and a message about the
+  whole form looks the same.
+- A button or link with `error` in its class, such as `btn-error`, is no
+  longer taken for an error message. Before, one beside a single field failed
+  that field with `error-association/visible-error-is-not-tied`.
+- The README has a Quick start, from an empty folder to a first result, and
+  says where warnings on a passing test appear: not in the terminal, but in
+  the HTML report.
+- The engine notes cover Playwright 1.64's Firefox failing to start on
+  macOS 27, and the setting that fixes it.
+
 ## 0.3.0 (2026-11-01)
 
 This release changes what the checks report. If your tests assert exact

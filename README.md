@@ -24,19 +24,91 @@ disclosures and dialogs. axe reads markup, so it cannot press a button and
 look at what happened. These checks do, and nothing else. Run them next to
 axe, not instead of it. Passing them is not conformance.
 
-## Install
+## Quick start
+
+You need Node 20.19 or later in the 20 line, or 22.12 or later. In your
+project, or in an empty folder, install the package, Playwright and the three
+browsers:
 
 ```bash
-npm install --save-dev @accessible-by-default/checks
+npm install --save-dev @accessible-by-default/checks @playwright/test
 ```
 
-It is tested with `@playwright/test` 1.64.1 and supports 1.64 or later. It
-needs Node 20.19 or later in the 20 line, or 22.12 or later: the first
-releases that can `require()` an ES module, which a test file compiled to
-CommonJS does. Node 20 itself is past its end of life. Every pull request
-installs the packed package in a new project, on Node 20.19, 22.12 and 24
-with Playwright 1.64.0 and on Node 26 with the latest Playwright, and runs the
-matchers from CommonJS and from an ES module.
+```bash
+npx playwright install chromium firefox webkit
+```
+
+On Linux, add `--with-deps` to that second command, which also installs the
+system libraries the browsers need.
+
+Add `playwright.config.ts`. This one serves the current folder on port 4173.
+If your project has a dev server, use its command and address instead.
+
+```ts
+import { defineConfig, devices } from '@playwright/test'
+
+export default defineConfig({
+  testDir: 'tests',
+  use: { baseURL: 'http://localhost:4173' },
+  webServer: {
+    command: 'npx --yes serve@14 --listen 4173',
+    url: 'http://localhost:4173',
+    reuseExistingServer: true,
+  },
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+  ],
+})
+```
+
+Add `tests/behaviour.spec.ts`:
+
+```ts
+import { test } from '@playwright/test'
+import { expect } from '@accessible-by-default/checks'
+
+test('the home page keeps its promises', async ({ page }) => {
+  await page.goto('/')
+  await expect(page).toHaveTruthfulExpandedState()
+  await expect(page).toHaveErrorsTiedToFields()
+})
+```
+
+Run it:
+
+```bash
+npx playwright test
+```
+
+On macOS 27 with Playwright 1.64, Firefox fails here with "Could not find
+profile folder". The [engine notes](#engine-notes) have the setting that fixes
+it.
+
+A failing test lists its findings in the terminal. A passing test can still
+carry warnings, and the terminal does not show those. To read them, write the
+HTML report and open it:
+
+```bash
+npx playwright test --reporter=html
+```
+
+```bash
+npx playwright show-report
+```
+
+This is a first result, not coverage. A check only sees the state the page is
+in, so [Use](#use) shows how to open a dialog and submit a form first.
+
+### Playwright and Node
+
+It is tested with `@playwright/test` 1.64.1 and supports 1.64 or later. Node
+20.19 and 22.12 are the first releases that can `require()` an ES module,
+which a test file compiled to CommonJS does. Node 20 itself is past its end
+of life. Every pull request installs the packed package in a new project, on
+Node 20.19, 22.12 and 24 with Playwright 1.64.0 and on Node 26 with the latest
+Playwright, and runs the matchers from CommonJS and from an ES module.
 
 ## Use
 
@@ -77,8 +149,9 @@ iframe, use a locator from `page.frameLocator()`.
 
 A failing matcher lists every finding and names the engine it measured in.
 Warnings do not fail a test. On a passing test they are added to the
-report as annotations of type `accessibility warning`; on a failing one they
-are listed with the failures. To fail on warnings too, pass
+report as annotations of type `accessibility warning`, which Playwright's
+default terminal reporter does not print and its HTML report does; on a
+failing one they are listed with the failures. To fail on warnings too, pass
 `{ warnings: 'fail' }`.
 
 ### Findings as data
@@ -121,9 +194,9 @@ ends each finding it lists with its code, in a failure message or an
 
 ### Versions
 
-While the version starts with 0, a minor release, such as 0.4.0, can change
+While the version starts with 0, a minor release, such as 0.5.0, can change
 what a check reports: a new code, a check that finds more, or a code with a
-different severity or criteria. A patch release, such as 0.3.1, changes none
+different severity or criteria. A patch release, such as 0.4.1, changes none
 of that, except to remove a finding that was wrong. `what` can change in any
 release. If your tests assert exact findings, pin an exact version.
 
@@ -292,13 +365,20 @@ also holds fields, such as a dialog's description, does not count.
 
 Error messages are found by the selector
 `[id*="error" i], [class*="error" i], [role="alert"]`. A match is left out
-when it is a field, a heading, a form, a fieldset, a label or a legend, when
-it is hidden or empty, when it contains a field or a link (an error summary
-of links is fine), or when it contains a smaller match. "Next to" means the
-nearest wrapper that holds fields, climbing no further than a form,
-fieldset, section, article, search or dialog, and never into `body`, `main`, the
-header, footer, navigation or an aside. Pass `errors` to use your own
-selector.
+when it is a field, a heading, a form, a fieldset, a label, a legend, a button
+or a link, when it is hidden or empty, when it contains a field or a link (an
+error summary of links is fine), or when it contains a smaller match. "Next
+to" means the nearest wrapper that holds fields, climbing no further than a
+form, fieldset, section, article, search or dialog, and never into `body`,
+`main`, the header, footer, navigation or an aside. Pass `errors` to use your
+own selector.
+
+In a flat form, with no wrapper around each field, the nearest wrapper holds
+several fields, so a message is next to none of them. The markup does not say
+which field it belongs to, and a message about the whole form looks the same,
+so the check does not guess. An error that sits directly among several fields
+and is tied to none of them gets a warning that names the error and no field.
+A field marked `aria-invalid` with no message tied to it is still a failure.
 
 A field that is invalid only by the browser's own validation, with no
 message of the page's own, passes: the browser shows and exposes its own
@@ -310,10 +390,15 @@ message.
 | `error-association/tied-message-is-empty` | failure | 3.3.1 | A field marked invalid points at a message, and every message it points at is empty |
 | `error-association/tied-message-is-hidden` | warning | 3.3.1 | The tied message is hidden from view |
 | `error-association/visible-error-is-not-tied` | failure | 1.3.1 | A visible error next to a field is not tied to it. It replaces any other finding for that field |
+| `error-association/error-among-several-fields` | warning | none | A visible error sits directly among several fields and is tied to none of them. It may belong to one of them or to the whole form, so no field is named |
 
 **What it does not prove.** That the message helps (3.3.3), that it is
 announced when it appears (4.1.3), or that a description tied to the field
-is an error and not a hint: a field described only by a hint passes.
+is an error and not a hint: a field described only by a hint passes. An error
+beside the wrappers of several fields, inside none of them, is not reported,
+because a message about the whole form looks the same. A warning does not
+fail a test, so a flat form with untied errors can pass unless you use
+`{ warnings: 'fail' }`.
 
 ---
 
@@ -325,6 +410,37 @@ findings on Ubuntu, in this repository's CI. Playwright's WebKit is not Safari,
 and its Firefox has no browser toolbar, so none of this is a claim about a
 browser someone uses.
 
+- **Playwright 1.64's Firefox does not start on macOS 27.** It fails with
+  "Could not find profile folder", because macOS 27 protects
+  `~/Library/Application Support/Firefox` and this Firefox reads that folder
+  at startup
+  ([microsoft/playwright#42768](https://github.com/microsoft/playwright/issues/42768)).
+  Chromium, WebKit and Linux are not affected. Playwright 1.65, not out yet,
+  is expected to bundle a Firefox without the problem. Until then, give
+  Firefox its own home folder in `playwright.config.ts`. This was tested on
+  1 November 2026:
+
+  ```ts
+  import { mkdirSync } from 'node:fs'
+  import { tmpdir } from 'node:os'
+  import { join } from 'node:path'
+
+  const firefoxHome = join(tmpdir(), 'playwright-firefox-home')
+  mkdirSync(firefoxHome, { recursive: true })
+  ```
+
+  ```ts
+  {
+    name: 'firefox',
+    use: {
+      ...devices['Desktop Firefox'],
+      launchOptions: { env: { ...process.env, CFFIXED_USER_HOME: firefoxHome } },
+    },
+  },
+  ```
+
+  The VS Code extension's Show browser and `--watch` drop this setting, so
+  Firefox still fails there.
 - **WebKit's Tab reaches only text fields and selects on macOS**, and skips
   buttons, links and checkboxes, as Safari does by default. The walk presses
   Alt+Tab in WebKit on every platform, as Option+Tab does in Safari.
