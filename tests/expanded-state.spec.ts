@@ -268,3 +268,28 @@ test('a toggle behind an open modal dialog is not called dead, and one inside it
     'expanded-state/state-contradicts-target failure 4.1.2 #inside',
   ])
 })
+
+test('a toggle that is not rendered is not compared with its target, and not pressed', async ({ page }) => {
+  await page.goto('/expanded-state/hidden-toggle.html')
+  const findings = await findExpandedStateMismatches(page, { within: page.locator('#not-rendered') })
+  expect(findings, JSON.stringify(findings, null, 2)).toEqual([])
+  expect(await page.evaluate(() => (window as unknown as { pressed: string[] }).pressed)).toEqual([])
+})
+
+test('a toggle hidden at one width is skipped there and checked at a width that renders it', async ({ page }) => {
+  await page.goto('/expanded-state/hidden-toggle.html')
+  const wide = await findExpandedStateMismatches(page, { within: page.locator('#responsive') })
+  expect(wide, JSON.stringify(wide, null, 2)).toEqual([])
+  await page.setViewportSize({ width: 400, height: 800 })
+  const narrow = await findExpandedStateMismatches(page, { within: page.locator('#responsive') })
+  expect(summary(narrow), JSON.stringify(narrow, null, 2)).toEqual(['expanded-state/state-contradicts-target failure 4.1.2 #hamburger'])
+})
+
+test('a toggle that is only transparent or clipped is still compared, because a screen reader still gets it', async ({ page }) => {
+  await page.goto('/expanded-state/hidden-toggle.html')
+  const findings = await findExpandedStateMismatches(page, { within: page.locator('#only-invisible') })
+  expect(summary(findings), JSON.stringify(findings, null, 2)).toEqual([
+    'expanded-state/state-contradicts-target failure 4.1.2 #clipped',
+    'expanded-state/state-contradicts-target failure 4.1.2 #transparent',
+  ])
+})

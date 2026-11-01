@@ -16,6 +16,7 @@ interface Reading {
   native: boolean | null
   visible: boolean | null
   target: string
+  rendered: boolean
   activatable: boolean
   tabStop: boolean
   inComposite: boolean
@@ -129,6 +130,7 @@ function readInPage({ elements, restore, blink }: { elements: Element[]; restore
       native,
       visible,
       target: target ? (target.id ? `#${target.id}` : `the ${target.localName} it controls`) : '',
+      rendered: element.checkVisibility({ visibilityProperty: true }),
       activatable: buttonLike && !formAction && !disabled && !element.closest('[inert]') && shown(element),
       tabStop: element instanceof HTMLElement && element.tabIndex >= 0,
       inComposite: element.closest(composite) !== null,
@@ -292,7 +294,7 @@ export async function findExpandedStateMismatches(page: Page, options: ExpandedS
 
   for (const [index, handle] of handles.entries()) {
     const rest = await read(handle)
-    if (!rest || rest.reported === null || !snapshot[index]) continue
+    if (!rest?.rendered || rest.reported === null || !snapshot[index]) continue
     if (await assess(handle, rest, 'at rest')) continue
     if (rest.noRole) {
       if (rest.target) {

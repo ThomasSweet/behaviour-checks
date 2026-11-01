@@ -196,7 +196,7 @@ ends each finding it lists with its code, in a failure message or an
 
 While the version starts with 0, a minor release, such as 0.5.0, can change
 what a check reports: a new code, a check that finds more, or a code with a
-different severity or criteria. A patch release, such as 0.4.1, changes none
+different severity or criteria. A patch release, such as 0.4.2, changes none
 of that, except to remove a finding that was wrong. `what` can change in any
 release. If your tests assert exact findings, pin an exact version.
 
@@ -230,6 +230,13 @@ not a native control or a table row or cell, such as a `div` with a click
 handler, is reported and never pressed. Nothing in the markup says what a
 press on it would do, so the check does not guess. Use a
 `<button type="button">`, or add `role="button"`, and the check will press it.
+
+A toggle that is not rendered at this width, such as a hamburger hidden on
+desktop, is skipped: nobody can see, reach or hear it, so it cannot mislead
+anyone. That covers `display: none`, `visibility: hidden` and a hidden
+ancestor, so run the check at each width you ship. A toggle that is only
+transparent or clipped is still compared, because a screen reader still gets
+it.
 
 It is careful with the page:
 
