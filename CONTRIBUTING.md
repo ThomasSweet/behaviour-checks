@@ -69,7 +69,7 @@ Releases are published by the Release workflow, never from a laptop.
    `npm version <version> --no-git-tag-version` and date its section in
    `CHANGELOG.md`.
 2. After it merges, create a GitHub release whose tag is the version with a
-   `v` in front, such as `v0.3.0`.
+   `v` in front, such as `v0.4.0`.
 3. The Release workflow runs every CI check on that tag, stops if the tag and
    `package.json` disagree, waits for a maintainer to approve the deployment
    to the `npm` environment on the run's page, and publishes to npm through

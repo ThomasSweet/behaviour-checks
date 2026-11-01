@@ -32,6 +32,7 @@ export const definitions = {
   'error-association/tied-message-is-empty': { severity: 'failure', criteria: ['3.3.1'] },
   'error-association/tied-message-is-hidden': { severity: 'warning', criteria: ['3.3.1'] },
   'error-association/visible-error-is-not-tied': { severity: 'failure', criteria: ['1.3.1'] },
+  'error-association/error-among-several-fields': { severity: 'warning', criteria: [] },
 } as const satisfies Record<FindingCode, Definition>
 
 export function defined(code: FindingCode, wcag = true) {
