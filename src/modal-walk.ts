@@ -208,11 +208,15 @@ export async function walkModal(opener: Locator, options: ModalWalkOptions = {})
     dialog = await locateDialog()
   }
   if (!dialog) {
-    await openerHandle.click({ timeout: 2000 }).catch(() => undefined)
+    const clicked = await openerHandle.click({ timeout: 2000 }).then(
+      () => true,
+      () => false,
+    )
     await animationsSettled(frame)
     dialog = await locateDialog()
     if (!dialog) {
-      await report(openerHandle, 'modal-walk/no-dialog-opens', 'neither Enter nor a click opened anything that looks like a dialog')
+      const tried = focusable ? 'Enter opened nothing that looks like a dialog' : 'the opener cannot take focus'
+      await report(openerHandle, 'modal-walk/no-dialog-opens', `${tried}, and ${clicked ? 'a click opened nothing either' : 'Playwright could not click it'}`)
       return findings
     }
     if (focusable) await report(openerHandle, 'modal-walk/enter-does-not-open', 'Enter on the opener opened nothing, a click did')

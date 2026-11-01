@@ -137,6 +137,25 @@ test('an opener that opens nothing is reported', async ({ page }) => {
   await page.goto('/modal/fail-no-dialog.html')
   const findings = await walkModal(page.locator('#open'))
   expect(summary(findings), detail(findings)).toEqual(['modal-walk/no-dialog-opens failure  #open'])
+  expect(findings[0].what).toBe('Enter opened nothing that looks like a dialog, and a click opened nothing either')
+})
+
+test('an opener that cannot take focus and opens nothing is not said to have been pressed', async ({ page }) => {
+  await page.goto('/modal/fail-opener-covered.html')
+  await page.locator('.cover').evaluate((cover) => cover.remove())
+  const findings = await walkModal(page.locator('#open-unfocusable'))
+  expect(summary(findings), detail(findings)).toEqual(['modal-walk/no-dialog-opens failure  #open-unfocusable'])
+  expect(findings[0].what).toBe('the opener cannot take focus, and a click opened nothing either')
+})
+
+test('an opener Playwright cannot click is reported as that, not as a click that opened nothing', async ({ page }) => {
+  await page.goto('/modal/fail-opener-covered.html')
+  const focusable = await walkModal(page.locator('#open'))
+  expect(summary(focusable), detail(focusable)).toEqual(['modal-walk/no-dialog-opens failure  #open'])
+  expect(focusable[0].what).toBe('Enter opened nothing that looks like a dialog, and Playwright could not click it')
+  const unfocusable = await walkModal(page.locator('#open-unfocusable'))
+  expect(summary(unfocusable), detail(unfocusable)).toEqual(['modal-walk/no-dialog-opens failure  #open-unfocusable'])
+  expect(unfocusable[0].what).toBe('the opener cannot take focus, and Playwright could not click it')
 })
 
 test('an opener that only a click opens fails 2.1.1', async ({ page }) => {

@@ -121,9 +121,9 @@ ends each finding it lists with its code, in a failure message or an
 
 ### Versions
 
-While the version starts with 0, a minor release, such as 0.3.0, can change
+While the version starts with 0, a minor release, such as 0.4.0, can change
 what a check reports: a new code, a check that finds more, or a code with a
-different severity or criteria. A patch release, such as 0.2.1, changes none
+different severity or criteria. A patch release, such as 0.3.1, changes none
 of that, except to remove a finding that was wrong. `what` can change in any
 release. If your tests assert exact findings, pin an exact version.
 
@@ -151,6 +151,12 @@ it compares the state the element reports with whether the target can be
 seen, three times: at rest, after one
 press, and after a second press. It presses Enter, then Space if Enter
 changed nothing, then clicks.
+
+A rendered element with `aria-expanded` that has no `role` attribute and is
+not a native control or a table row or cell, such as a `div` with a click
+handler, is reported and never pressed. Nothing in the markup says what a
+press on it would do, so the check does not guess. Use a
+`<button type="button">`, or add `role="button"`, and the check will press it.
 
 It is careful with the page:
 
@@ -181,9 +187,12 @@ native state.
 | `expanded-state/pointer-only` | failure | 2.1.1 | A click toggles it, but Enter and Space do not |
 | `expanded-state/cannot-take-focus` | failure | 2.1.1 | It cannot take focus, and a click toggles it |
 | `expanded-state/not-a-tab-stop` | failure | 2.1.1 | Enter or Space toggles it, but it is not a tab stop and sits in no widget that moves focus with arrow keys (toolbar, menu, tab list, grid, tree, listbox, radio group) |
+| `expanded-state/toggle-has-no-role` | failure | 4.1.2 | It reports a state and names its target, but it has no `role` attribute and is not a native control |
 | `expanded-state/aria-expanded-overrides-native-state` | failure | 4.1.2 | A native invoker carries an `aria-expanded` attribute that contradicts its native state, and Chromium's accessibility tree follows the attribute |
 | `expanded-state/aria-expanded-contradicts-native-state` | warning | 4.1.2 | The same, where Chromium's accessibility tree ignores the attribute, or the engine's tree cannot be read |
 | `expanded-state/press-changes-nothing` | warning | 4.1.2 | Pressing and clicking changed nothing |
+| `expanded-state/state-has-no-role` | warning | 4.1.2 | The same, but it names no target on the page. It may be a toggle, or `aria-expanded` may be on the wrong element |
+| `expanded-state/could-not-click` | warning | none | Nothing changed, and Playwright could not click it: something may cover it, it may keep moving, or it may take no pointer events. The check could not finish, so clear what blocks it and run it again |
 | `expanded-state/browser-misreports-native-state` | warning | none | Chromium's accessibility tree disagrees with the native state: a browser problem, not the page's |
 
 **Visible** means rendered with a content box larger than its borders, and
@@ -192,8 +201,12 @@ off-screen `content-visibility: auto` section, scrolled away or covered still
 counts as visible.
 
 **What it does not prove.** That the target holds the right content. An
-element is pressed only when it acts as a button; `aria-expanded` on a
-combobox, tree item or row is checked at rest only. Disclosures inside a
+element is pressed only when it acts as a button: a `<button>`, an
+`<input type="button">`, a `<summary>` or `role="button"`. On any other
+element with a `role`, such as a `div` that is a combobox, tree item or row,
+`aria-expanded` is checked at rest only, whether or not that role supports
+it. So is `aria-expanded` on a custom element with no `role`, because
+`ElementInternals` can give it a role that a page cannot read. Disclosures inside a
 panel that is collapsed when the check starts are not pressed. Chromium's
 accessibility tree is read only for elements in the top frame's document,
 outside shadow roots.
@@ -239,7 +252,7 @@ focus is the page's failure.
 | `modal-walk/focus-does-not-return` | failure | 2.4.3 | Focus did not return to the opener, or to `returnTo`, when the dialog closed |
 | `modal-walk/enter-does-not-open` | failure | 2.1.1 | Enter on the opener opened nothing, a click did |
 | `modal-walk/opener-cannot-take-focus` | failure | 2.1.1 | The opener cannot take focus; a click opened the dialog |
-| `modal-walk/no-dialog-opens` | failure | none | Neither Enter nor a click opened anything that looks like a dialog |
+| `modal-walk/no-dialog-opens` | failure | none | No dialog appeared: Enter and a click opened nothing, the opener could not take focus, or Playwright could not click it |
 | `modal-walk/blank-stop-behind-dialog` | warning | none | An inert element behind the dialog took focus and lost it at once: a browser bug the page cannot fix, but a keyboard user still lands there |
 | `modal-walk/focus-stays-off-page` | warning | 2.4.3 | Focus left the page and 20 presses did not bring it back into the dialog |
 | `modal-walk/escape-does-not-close` | warning | 2.1.2 | Escape does not close it; pass `close` to finish the walk with a close control |

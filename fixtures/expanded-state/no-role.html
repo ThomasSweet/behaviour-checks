@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expanded state: plain elements that report a state</title>
+  </head>
+  <body>
+    <main>
+      <h1>Plain elements that report a state</h1>
+
+      <div id="click-only" aria-expanded="false" aria-controls="click-only-panel" data-watched>A click operates it</div>
+      <div id="click-only-panel" hidden>Only a click opens this.</div>
+
+      <div id="keyboard" tabindex="0" aria-expanded="false" aria-controls="keyboard-panel" data-watched>Keys work too</div>
+      <div id="keyboard-panel" hidden>Enter opens this.</div>
+
+      <a id="no-href" aria-expanded="false" aria-controls="no-href-panel" data-watched>A link with no href</a>
+      <div id="no-href-panel" hidden>Only a click opens this.</div>
+
+      <h2 id="heading" aria-expanded="false" aria-controls="heading-panel" data-watched>A heading</h2>
+      <div id="heading-panel" hidden>Only a click opens this.</div>
+
+      <div id="wrong-at-rest" aria-expanded="true" aria-controls="wrong-at-rest-panel" data-watched>Says expanded, starts hidden</div>
+      <div id="wrong-at-rest-panel" hidden>Hidden.</div>
+
+      <div id="no-target" aria-expanded="false" data-watched>Names no target</div>
+
+      <div id="missing-target" aria-expanded="false" aria-controls="nowhere" data-watched>Names a target that is not there</div>
+
+      <div id="wrapper" aria-expanded="false" data-watched>
+        <a href="/expanded-state/elsewhere.html" data-watched>The real control is inside</a>
+      </div>
+
+      <div hidden>
+        <div id="hidden" aria-expanded="false" aria-controls="hidden-panel" data-watched>Not rendered</div>
+        <div id="hidden-panel" hidden>Hidden.</div>
+      </div>
+
+      <div inert>
+        <div id="in-inert" aria-expanded="false" aria-controls="in-inert-panel" data-watched>Under inert</div>
+        <div id="in-inert-panel" hidden>Hidden.</div>
+      </div>
+
+      <div aria-hidden="true">
+        <div id="in-aria-hidden" aria-expanded="false" aria-controls="in-aria-hidden-panel" data-watched>Under aria-hidden</div>
+        <div id="in-aria-hidden-panel" hidden>Hidden.</div>
+      </div>
+
+      <section id="has-a-role">
+        <a id="link" href="/expanded-state/elsewhere.html" aria-expanded="false" data-watched>A link</a>
+        <svg width="100" height="20" role="img" aria-label="A drawing">
+          <a id="svg-link" xlink:href="#has-a-role" aria-expanded="false" data-watched><text y="15">An SVG link</text></a>
+        </svg>
+        <img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="A map" width="100" height="100" usemap="#map" />
+        <map name="map">
+          <area id="area" shape="rect" coords="0,0,100,100" href="/expanded-state/elsewhere.html" alt="An area" aria-expanded="false" data-watched />
+        </map>
+        <video id="video" controls aria-expanded="false" data-watched></video>
+        <audio id="audio" controls aria-expanded="false" data-watched></audio>
+        <div id="editable" contenteditable aria-label="An editor" aria-expanded="false" data-watched></div>
+        <input id="field" aria-label="A field" aria-expanded="false" data-watched />
+        <select id="select" aria-label="A select" aria-expanded="false" data-watched>
+          <option>One</option>
+        </select>
+        <select aria-label="A list" size="3">
+          <option id="option" aria-expanded="false" data-watched>One</option>
+        </select>
+        <textarea id="textarea" aria-label="A text area" aria-expanded="false" data-watched></textarea>
+        <details id="details" aria-expanded="false" data-watched>
+          <summary>Details</summary>
+          <p>Text</p>
+        </details>
+        <table>
+          <tbody>
+            <tr id="row" aria-expanded="false" data-watched>
+              <th id="header" aria-expanded="false" data-watched>A header</th>
+              <td id="cell" aria-expanded="false" data-watched>A cell</td>
+            </tr>
+          </tbody>
+        </table>
+        <div id="tree-item" role="treeitem" aria-expanded="false" aria-controls="tree-group" data-watched>A tree item</div>
+        <div id="tree-group" hidden>Children</div>
+        <x-item id="custom" aria-expanded="false" aria-controls="custom-panel" data-watched>A custom element</x-item>
+        <div id="custom-panel" hidden>Its panel.</div>
+      </section>
+    </main>
+    <script>
+      window.pressed = []
+      for (const element of document.querySelectorAll('[data-watched]')) {
+        element.addEventListener('click', (event) => {
+          event.preventDefault()
+          window.pressed.push(element.id)
+        })
+      }
+    </script>
+  </body>
+</html>

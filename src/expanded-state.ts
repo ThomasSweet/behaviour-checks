@@ -20,6 +20,7 @@ interface Reading {
   tabStop: boolean
   inComposite: boolean
   oneWay: boolean
+  noRole: boolean
 }
 
 type Activation = 'Enter' | 'Space' | 'click'
@@ -27,6 +28,8 @@ type Activation = 'Enter' | 'Space' | 'click'
 function readInPage({ elements, restore, blink }: { elements: Element[]; restore: (boolean | null)[] | null; blink: boolean }) {
   const composite =
     '[role="toolbar"], [role="menubar"], [role="menu"], [role="grid"], [role="treegrid"], [role="tablist"], [role="tree"], [role="listbox"], [role="radiogroup"]'
+  const canCarryState =
+    'a[*|href], area[href], audio[controls], button, details, input, option, select, summary, td, textarea, th, tr, video[controls], [contenteditable]'
   const shown = (node: Element) => {
     if (!node.checkVisibility({ opacityProperty: true, visibilityProperty: true })) return false
     if (getComputedStyle(node).display === 'inline') {
@@ -130,6 +133,12 @@ function readInPage({ elements, restore, blink }: { elements: Element[]; restore
       tabStop: element instanceof HTMLElement && element.tabIndex >= 0,
       inComposite: element.closest(composite) !== null,
       oneWay: native !== null && ((action === 'hide' && !native) || (action === 'show' && native)),
+      noRole:
+        !role &&
+        !element.matches(canCarryState) &&
+        !element.localName.includes('-') &&
+        !element.closest('[inert], [aria-hidden="true"]') &&
+        shown(element),
     }
   })
 }
@@ -198,16 +207,18 @@ export async function findExpandedStateMismatches(page: Page, options: ExpandedS
 
   const activate = async (handle: ElementHandle, before: Reading) => {
     const focused = await focusOn(handle)
+    const pressed: string[] = []
     if (focused) {
       for (const how of ['Enter', 'Space'] as const) {
         if (!(await press(handle, how))) break
+        pressed.push(how)
         const now = await read(handle)
-        if (!same(now, before)) return { how, after: now, focused }
+        if (!same(now, before)) return { how, after: now, focused, clicked: false, pressed }
       }
     }
-    await press(handle, 'click')
+    const clicked = await press(handle, 'click')
     const now = await read(handle)
-    return { how: same(now, before) ? null : ('click' as const), after: now, focused }
+    return { how: same(now, before) ? null : ('click' as const), after: now, focused, clicked, pressed }
   }
 
   const report = async (handle: ElementHandle, code: CodeOf<'expanded-state'>, what: string) => {
@@ -283,10 +294,42 @@ export async function findExpandedStateMismatches(page: Page, options: ExpandedS
     const rest = await read(handle)
     if (!rest || rest.reported === null || !snapshot[index]) continue
     if (await assess(handle, rest, 'at rest')) continue
+    if (rest.noRole) {
+      if (rest.target) {
+        await report(
+          handle,
+          'expanded-state/toggle-has-no-role',
+          `it reports a state and names its target ${rest.target}, but it has no role attribute and is not a native control, so assistive technology is not told it can be operated. The check does not press it`,
+        )
+      } else {
+        await report(
+          handle,
+          'expanded-state/state-has-no-role',
+          'it reports a state and names no target on the page, but it has no role attribute and is not a native control. The check does not press it',
+        )
+      }
+    }
     if (!rest.activatable || rest.oneWay) continue
 
-    const { how, after, focused } = await activate(handle, rest)
-    if (after && how === null) {
+    const { how, after, focused, clicked, pressed } = await activate(handle, rest)
+    if (after && how === null && !clicked && (pressed.length === 1 || (pressed.length === 2 && !after.activatable))) {
+      const keys = pressed.join(' and ')
+      await report(
+        handle,
+        'expanded-state/press-changes-nothing',
+        rest.target
+          ? `${keys} changed neither its state nor its target ${rest.target}, and left it out of reach`
+          : `${keys} did not change its state and left it out of reach, and it names no target to compare with`,
+      )
+    } else if (after && how === null && !clicked) {
+      await report(
+        handle,
+        'expanded-state/could-not-click',
+        pressed.length
+          ? 'Enter and Space changed nothing and Playwright could not click it, so the check cannot tell whether a click operates it'
+          : 'it cannot take focus and Playwright could not click it, so the check could not operate it',
+      )
+    } else if (after && how === null) {
       const tried = focused ? 'pressing Enter or Space and clicking' : 'it cannot take focus, and clicking'
       await report(
         handle,
