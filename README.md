@@ -20,9 +20,9 @@ In WebAIM's screen reader survey #10 (December 2023 to January 2024),
 respondents ranked interactive elements like menus, tabs and dialogs that do
 not behave as expected second among problems, after CAPTCHA. The 2026 survey
 did not ask that question. Two of these checks cover part of that item:
-disclosures and dialogs. axe reads markup, so it cannot press a button and
-look at what happened. These checks do, and nothing else. Run them next to
-axe, not instead of it. Passing them is not conformance.
+disclosures and dialogs. axe-core reads markup, so it cannot press a button
+and look at what happened. These checks do, and nothing else. Run them next
+to axe, not instead of it. Passing them is not conformance.
 
 ## Quick start
 
@@ -280,9 +280,10 @@ element with a `role`, such as a `div` that is a combobox, tree item or row,
 `aria-expanded` is checked at rest only, whether or not that role supports
 it. So is `aria-expanded` on a custom element with no `role`, because
 `ElementInternals` can give it a role that a page cannot read. Disclosures inside a
-panel that is collapsed when the check starts are not pressed. Chromium's
-accessibility tree is read only for elements in the top frame's document,
-outside shadow roots.
+panel that is collapsed when the check starts are not pressed. A toggle with
+no `aria-expanded` and no native state is never looked at, so it passes
+however it behaves. Chromium's accessibility tree is read only for elements
+in the top frame's document, outside shadow roots.
 
 ## A dialog holds focus and gives it back
 

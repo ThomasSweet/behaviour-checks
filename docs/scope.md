@@ -15,11 +15,13 @@ An npm package of Playwright matchers and helpers that operate a page's
 interactive widgets by keyboard, in Chromium, Firefox and WebKit, and check
 that they behave as they claim. A disclosure that says it is collapsed hides
 its panel. A modal holds focus and gives it back. An error is tied to its
-field. These are the failures screen reader users rank second, after
-CAPTCHAs: menus, tabs and dialogs that do not behave as expected (WebAIM
-survey 2024, via the research document). Each check returns its findings as
-data, and each matcher fails a test with that list. It sits next to axe, not
-in place of it, and a pass is not conformance.
+field. Screen reader users rank interactive elements like menus, tabs and
+dialogs that do not behave as expected second among problems, after CAPTCHA
+(WebAIM survey 10, 2024, via the research document). These checks cover only
+part of that item: disclosures and dialogs, by keyboard, with no screen
+reader, and no menus or tabs. Each check returns its findings as data, and
+each matcher fails a test with that list. It sits next to axe, not in place
+of it, and a pass is not conformance.
 
 ---
 
@@ -57,12 +59,17 @@ Also: axe-core 4.14 already has `identical-links-same-purpose`, the
 distinct-names check, but it is off by default, tagged AAA (2.4.9) and needs
 review. I confirmed that in the installed copy. `@react-aria/test-utils` and
 the Evinced Unit Tester are as the brief says: jsdom, no focus return, and
-Evinced is still private.
+Evinced is still private. By 1 November 2026 Evinced's docs also listed Web
+Test Runner, which runs in a browser, with jsdom still a requirement.
 
 **Still in no open-source package we found:** the expanded-state sweep, a
 modal walk that proves Tab and Shift+Tab cannot leave, and a page-wide check
 that errors are tied to their fields. Evinced's private tester covers the
-first two, on jsdom rather than in a browser.
+first two, on components rather than pages.
+
+Paid tools have moved too. axe DevTools 4.131.2, 29 June 2026, added an
+Automated Modal Dialog guided test, with a person reviewing the result. So
+"axe cannot press a button" holds for axe-core only.
 
 ---
 
