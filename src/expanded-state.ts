@@ -1,13 +1,14 @@
 import type { ElementHandle, Frame, Locator, Page } from '@playwright/test'
 
 import { defined } from './codes.js'
-import { animationsSettled, contextOf, describe, engineOf, focusOn, frameOf, rootsOf } from './page.js'
+import { animationsSettled, contextOf, describe, engineOf, focusOn, frameOf, pressTimeout, rootsOf, wait } from './page.js'
 import type { CodeOf, Finding } from './types.js'
 
 const invokers = '[aria-expanded], button[popovertarget], input[popovertarget], button[commandfor]'
 
 export interface ExpandedStateOptions {
   within?: Locator
+  timeout?: number
 }
 
 interface Reading {
@@ -158,6 +159,10 @@ function mismatch(reading: Reading, when: string) {
   return `${says(reading.reported)} while its target ${reading.target} is ${reading.visible ? 'visible' : 'hidden'}, ${when}`
 }
 
+function settled(reading: Reading) {
+  return !mismatch(reading, '') && (reading.native === null || reading.stated === null || reading.stated === reading.native)
+}
+
 async function chromiumExpanded(page: Page, handle: ElementHandle) {
   const session = await page.context().newCDPSession(page)
   try {
@@ -185,6 +190,7 @@ export async function findExpandedStateMismatches(page: Page, options: ExpandedS
   const context = contextOf(page)
   const blink = engineOf(page) === 'chromium'
   const chromium = blink && frame === page.mainFrame()
+  const timeout = options.timeout ?? pressTimeout
   const findings: Finding[] = []
 
   const readAll = (restore: (boolean | null)[] | null = null) =>
@@ -207,6 +213,15 @@ export async function findExpandedStateMismatches(page: Page, options: ExpandedS
     return true
   }
 
+  const reaction = async (handle: ElementHandle, before: Reading): Promise<Reading | null> => {
+    let now: Reading | null = null
+    await wait(async () => {
+      now = await read(handle)
+      return now === null || (!same(now, before) && settled(now))
+    }, timeout)
+    return now
+  }
+
   const activate = async (handle: ElementHandle, before: Reading) => {
     const focused = await focusOn(handle)
     const pressed: string[] = []
@@ -214,12 +229,12 @@ export async function findExpandedStateMismatches(page: Page, options: ExpandedS
       for (const how of ['Enter', 'Space'] as const) {
         if (!(await press(handle, how))) break
         pressed.push(how)
-        const now = await read(handle)
+        const now = await reaction(handle, before)
         if (!same(now, before)) return { how, after: now, focused, clicked: false, pressed }
       }
     }
     const clicked = await press(handle, 'click')
-    const now = await read(handle)
+    const now = clicked ? await reaction(handle, before) : await read(handle)
     return { how: same(now, before) ? null : ('click' as const), after: now, focused, clicked, pressed }
   }
 
@@ -277,11 +292,12 @@ export async function findExpandedStateMismatches(page: Page, options: ExpandedS
   const snapshot = await readAll()
   const wanted = snapshot.map((reading) => reading?.native ?? null)
 
-  const restore = async () => {
+  const restore = async (pressed: ElementHandle, start: Reading | null) => {
     let now = await readAll(wanted)
     if (now.every((reading, index) => same(reading, snapshot[index]))) return
     await page.keyboard.press('Escape')
     await animationsSettled(frame)
+    await wait(async () => same(await read(pressed), start), timeout)
     now = await readAll(wanted)
     for (const [index, handle] of handles.entries()) {
       const reading = now[index]
@@ -355,10 +371,10 @@ export async function findExpandedStateMismatches(page: Page, options: ExpandedS
         )
       }
       const reported = await assess(handle, after, `after ${how}`)
-      const again = (await press(handle, how)) ? await read(handle) : null
+      const again = (await press(handle, how)) ? await reaction(handle, after) : null
       if (!reported && again) await assess(handle, again, `after a second ${how}`)
     }
-    await restore()
+    await restore(handle, snapshot[index])
   }
 
   await frame

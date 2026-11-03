@@ -194,9 +194,9 @@ ends each finding it lists with its code, in a failure message or an
 
 ### Versions
 
-While the version starts with 0, a minor release, such as 0.5.0, can change
+While the version starts with 0, a minor release, such as 0.6.0, can change
 what a check reports: a new code, a check that finds more, or a code with a
-different severity or criteria. A patch release, such as 0.4.2, changes none
+different severity or criteria. A patch release, such as 0.5.1, changes none
 of that, except to remove a finding that was wrong. `what` can change in any
 release. If your tests assert exact findings, pin an exact version.
 
@@ -204,7 +204,8 @@ release. If your tests assert exact findings, pin an exact version.
 
 ## Expanded state tells the truth
 
-`toHaveTruthfulExpandedState()`, `findExpandedStateMismatches(page, { within })`
+`toHaveTruthfulExpandedState({ timeout })`,
+`findExpandedStateMismatches(page, { within, timeout })`
 
 **What it does.** It finds every element with `aria-expanded`, every button
 or `input` with `popovertarget`, and every button with
@@ -223,7 +224,10 @@ check compares its `aria-expanded` with the target it names. Then
 it compares the state the element reports with whether the target can be
 seen, three times: at rest, after one
 press, and after a second press. It presses Enter, then Space if Enter
-changed nothing, then clicks.
+changed nothing, then clicks. After each press it gives the widget up to
+`timeout` milliseconds, 1000 by default, to change and to agree with its
+target, as Playwright's own assertions retry, and only then tries the next
+key. `0` reads once.
 
 A rendered element with `aria-expanded` that has no `role` attribute and is
 not a native control or a table row or cell, such as a `div` with a click
@@ -286,7 +290,10 @@ element is pressed only when it acts as a button: a `<button>`, an
 element with a `role`, such as a `div` that is a combobox, tree item or row,
 `aria-expanded` is checked at rest only, whether or not that role supports
 it. So is `aria-expanded` on a custom element with no `role`, because
-`ElementInternals` can give it a role that a page cannot read. Disclosures inside a
+`ElementInternals` can give it a role that a page cannot read. A widget slower
+than `timeout` gets the result a dead one would, so raise it for slow widgets.
+A control that does not change uses the whole wait for each key, so a page of
+them takes longer: scope the check, or lower `timeout`. Disclosures inside a
 panel that is collapsed when the check starts are not pressed. A toggle with
 no `aria-expanded` and no native state is never looked at, so it passes
 however it behaves. Chromium's accessibility tree is read only for elements
@@ -294,7 +301,7 @@ in the top frame's document, outside shadow roots.
 
 ## A dialog holds focus and gives it back
 
-`toOpenADialogThatHoldsFocus({ close, returnTo, presses })`,
+`toOpenADialogThatHoldsFocus({ close, returnTo, presses, timeout })`,
 `walkModal(opener, options)`
 
 **What it does.** It focuses the opener and presses Enter, falling back to a
@@ -303,7 +310,10 @@ else a modal `<dialog>` that was not open before, else a dialog or popover
 that appeared. It checks that focus moved in. It presses Tab, then
 Shift+Tab: as many times as the dialog has stops, counted through shadow
 roots, plus two, at least 3 and at most 100, or `presses`. Then it presses
-Escape and checks that focus came back to the opener, or to `returnTo`.
+Escape and checks that focus came back to the opener, or to `returnTo`. It
+gives the dialog up to `timeout` milliseconds, 1000 by default, to open, to
+take focus, to close and to give focus back. A dialog slower than that gets
+the result a broken one would, so raise it for slow dialogs.
 
 Focus may leave the page for the browser's own toolbar, as a native modal
 `<dialog>` allows, as long as it comes back into the dialog within 20

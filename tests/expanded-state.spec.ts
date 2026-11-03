@@ -293,3 +293,45 @@ test('a toggle that is only transparent or clipped is still compared, because a 
     'expanded-state/state-contradicts-target failure 4.1.2 #transparent',
   ])
 })
+
+test('a toggle that reacts late is waited for, pressed with Enter only, and put back', async ({ page }) => {
+  await page.goto('/expanded-state/slow.html')
+  const findings = await findExpandedStateMismatches(page, { within: page.locator('#together') })
+  expect(findings, JSON.stringify(findings, null, 2)).toEqual([])
+  expect(await page.evaluate(() => (window as unknown as { clicks: Record<string, number> }).clicks.late)).toBe(2)
+  await expect(page.locator('#late')).toHaveAttribute('aria-expanded', 'false')
+  await expect(page.locator('#late-panel')).toBeHidden()
+})
+
+for (const section of ['#state-first', '#panel-first', '#native']) {
+  test(`${section}: a state and target that agree a moment apart are not a contradiction`, async ({ page }) => {
+    await page.goto('/expanded-state/slow.html')
+    const findings = await findExpandedStateMismatches(page, { within: page.locator(section) })
+    expect(findings, JSON.stringify(findings, null, 2)).toEqual([])
+  })
+}
+
+test('a state that changes late while its target never moves is still a contradiction', async ({ page }) => {
+  await page.goto('/expanded-state/slow.html')
+  const findings = await findExpandedStateMismatches(page, { within: page.locator('#lying') })
+  expect(summary(findings), JSON.stringify(findings, null, 2)).toEqual(['expanded-state/state-contradicts-target failure 4.1.2 #lying-toggle'])
+})
+
+test('restore waits for a slow Escape instead of pressing the toggle again', async ({ page }) => {
+  await page.goto('/expanded-state/slow.html')
+  const findings = await findExpandedStateMismatches(page, { within: page.locator('#escape-late') })
+  expect(findings, JSON.stringify(findings, null, 2)).toEqual([])
+  await page.waitForTimeout(500)
+  await expect(page.locator('#escape-late-toggle')).toHaveAttribute('aria-expanded', 'false')
+  await expect(page.locator('#escape-late-panel')).toBeHidden()
+})
+
+test('timeout sets how long a press is given: past it nothing has changed, and a longer one passes', async ({ page }) => {
+  await page.goto('/expanded-state/slow.html?delay=1000')
+  const short = await findExpandedStateMismatches(page, { within: page.locator('#together'), timeout: 100 })
+  expect(summary(short), JSON.stringify(short, null, 2)).toEqual(['expanded-state/press-changes-nothing warning 4.1.2 #late'])
+
+  await page.goto('/expanded-state/slow.html?delay=1500')
+  const long = await findExpandedStateMismatches(page, { within: page.locator('#together'), timeout: 3000 })
+  expect(long, JSON.stringify(long, null, 2)).toEqual([])
+})

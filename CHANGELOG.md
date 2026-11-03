@@ -4,6 +4,28 @@ Notable changes to `@accessible-by-default/checks`. Versions follow
 [Semantic Versioning](https://semver.org). While the version starts with 0,
 a minor release can change what a check reports.
 
+## 0.5.0 (2026-11-03)
+
+This release changes what the checks report. If your tests assert exact
+findings, read this list before you upgrade.
+
+- The checks now wait for a widget after each press, up to a new `timeout`
+  option, 1000 milliseconds by default. Before, they read once, so a correct
+  widget that reacted a little late got a false finding: a modal that opened
+  300 milliseconds after Enter got `modal-walk/no-dialog-opens`, and a toggle
+  that updated 200 milliseconds after a press got
+  `expanded-state/pointer-only`. A state and a target that agree a moment
+  apart are no longer a contradiction. The next key is pressed only after the
+  wait, so a slow Enter is not cancelled by a Space.
+- A modal that closes late is now walked to the end. Before, it got a false
+  `modal-walk/escape-does-not-close` and the walk stopped, so a fault in focus
+  return was missed. Such a modal can now get
+  `modal-walk/focus-does-not-return`.
+- Putting widgets back waits for a slow Escape before pressing a toggle again.
+- A control that does not change now uses the whole wait for each key, so a
+  page of them takes longer. One page of 9 menus went from 5 to 21 seconds.
+  Scope the check, or lower `timeout`.
+
 ## 0.4.1 (2026-11-01)
 
 - A toggle that is not rendered, such as a hamburger hidden on desktop, is no
