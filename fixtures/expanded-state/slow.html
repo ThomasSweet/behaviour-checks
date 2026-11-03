@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expanded state: toggles that react late</title>
+  </head>
+  <body>
+    <main>
+      <h1>Toggles that react late</h1>
+
+      <section id="together">
+        <button id="late" aria-expanded="false" aria-controls="late-panel">State and panel change late</button>
+        <div id="late-panel" hidden>Panel</div>
+      </section>
+
+      <section id="state-first">
+        <button id="state-first-toggle" aria-expanded="false" aria-controls="state-first-panel">The panel follows the state</button>
+        <div id="state-first-panel" hidden>Panel</div>
+      </section>
+
+      <section id="panel-first">
+        <button id="panel-first-toggle" aria-expanded="false" aria-controls="panel-first-panel">The state follows the panel</button>
+        <div id="panel-first-panel" hidden>Panel</div>
+      </section>
+
+      <section id="native">
+        <button id="native-toggle" popovertarget="native-popover" aria-expanded="false">The attribute follows the popover</button>
+        <div id="native-popover" popover>Popover</div>
+      </section>
+
+      <section id="lying">
+        <button id="lying-toggle" aria-expanded="false" aria-controls="lying-panel">The state changes late, the panel never</button>
+        <div id="lying-panel" hidden>Panel</div>
+      </section>
+
+      <section id="escape-late">
+        <button id="escape-late-toggle" aria-expanded="false" aria-controls="escape-late-panel">Only a slow Escape closes it</button>
+        <div id="escape-late-panel" hidden>Panel</div>
+      </section>
+    </main>
+    <script>
+      const delay = Number(new URLSearchParams(location.search).get('delay') ?? 200)
+      const later = (run) => setTimeout(run, delay)
+      const parts = (id, panel) => [document.getElementById(id), document.getElementById(panel)]
+      const opening = (button) => button.getAttribute('aria-expanded') !== 'true'
+
+      window.clicks = {}
+      for (const button of document.querySelectorAll('button')) {
+        window.clicks[button.id] = 0
+        button.addEventListener('click', () => window.clicks[button.id]++)
+      }
+
+      {
+        const [button, panel] = parts('late', 'late-panel')
+        button.addEventListener('click', () =>
+          later(() => {
+            const open = opening(button)
+            button.setAttribute('aria-expanded', String(open))
+            panel.hidden = !open
+          }),
+        )
+      }
+      {
+        const [button, panel] = parts('state-first-toggle', 'state-first-panel')
+        button.addEventListener('click', () => {
+          const open = opening(button)
+          button.setAttribute('aria-expanded', String(open))
+          later(() => (panel.hidden = !open))
+        })
+      }
+      {
+        const [button, panel] = parts('panel-first-toggle', 'panel-first-panel')
+        button.addEventListener('click', () => {
+          const open = panel.hidden
+          panel.hidden = !open
+          later(() => button.setAttribute('aria-expanded', String(open)))
+        })
+      }
+      {
+        const [button, popover] = parts('native-toggle', 'native-popover')
+        popover.addEventListener('toggle', (event) => later(() => button.setAttribute('aria-expanded', String(event.newState === 'open'))))
+      }
+      {
+        const [button] = parts('lying-toggle', 'lying-panel')
+        button.addEventListener('click', () => later(() => button.setAttribute('aria-expanded', String(opening(button)))))
+      }
+      {
+        const [button, panel] = parts('escape-late-toggle', 'escape-late-panel')
+        const show = (open) => {
+          button.setAttribute('aria-expanded', String(open))
+          panel.hidden = !open
+        }
+        button.addEventListener('click', () => later(() => show(true)))
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') later(() => show(false))
+        })
+      }
+    </script>
+  </body>
+</html>

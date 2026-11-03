@@ -1,13 +1,14 @@
 import type { ElementHandle, JSHandle, Locator } from '@playwright/test'
 
 import { defined } from './codes.js'
-import { animationsSettled, contextOf, describe, focusOn, focusSettled, frameOf, isActiveInPage, tabKey } from './page.js'
+import { animationsSettled, contextOf, describe, focusOn, focusSettled, frameOf, isActiveInPage, pressTimeout, tabKey, wait } from './page.js'
 import type { CodeOf, Finding } from './types.js'
 
 export interface ModalWalkOptions {
   close?: Locator
   returnTo?: Locator
   presses?: number
+  timeout?: number
 }
 
 type Place = 'inside' | 'away' | 'blank' | 'dropped' | 'behind' | 'closed'
@@ -156,18 +157,10 @@ function times(count: number) {
   return count === 1 ? 'once' : count === 2 ? 'twice' : `${count} times`
 }
 
-async function wait(until: () => Promise<boolean>, timeout = 1000) {
-  const deadline = Date.now() + timeout
-  while (Date.now() < deadline) {
-    if (await until()) return true
-    await new Promise((resolve) => setTimeout(resolve, 50))
-  }
-  return until()
-}
-
 export async function walkModal(opener: Locator, options: ModalWalkOptions = {}) {
   const page = opener.page()
   const context = contextOf(page)
+  const timeout = options.timeout ?? pressTimeout
   const findings: Finding[] = []
   const report = async (handle: ElementHandle, code: CodeOf<'modal-walk'>, what: string, wcag = true) => {
     findings.push({ check: 'modal-walk', code, ...defined(code, wcag), element: await describe(handle), what, context })
@@ -199,21 +192,28 @@ export async function walkModal(opener: Locator, options: ModalWalkOptions = {})
     const found: JSHandle = await frame.evaluateHandle(findDialog, { opener: openerHandle as ElementHandle<Element>, before, selector: dialogs })
     return found.asElement()
   }
+  const dialogOpens = async (): Promise<ElementHandle | null> => {
+    let found: ElementHandle | null = null
+    await animationsSettled(frame)
+    await wait(async () => {
+      found = await locateDialog()
+      return found !== null
+    }, timeout)
+    return found
+  }
 
   const focusable = await focusOn(openerHandle)
   let dialog: ElementHandle | null = null
   if (focusable) {
     await page.keyboard.press('Enter')
-    await animationsSettled(frame)
-    dialog = await locateDialog()
+    dialog = await dialogOpens()
   }
   if (!dialog) {
     const clicked = await openerHandle.click({ timeout: 2000 }).then(
       () => true,
       () => false,
     )
-    await animationsSettled(frame)
-    dialog = await locateDialog()
+    dialog = await dialogOpens()
     if (!dialog) {
       const tried = focusable ? 'Enter opened nothing that looks like a dialog' : 'the opener cannot take focus'
       await report(openerHandle, 'modal-walk/no-dialog-opens', `${tried}, and ${clicked ? 'a click opened nothing either' : 'Playwright could not click it'}`)
@@ -235,7 +235,7 @@ export async function walkModal(opener: Locator, options: ModalWalkOptions = {})
       )
   }
 
-  const movedIn = await wait(async () => (await dialog.evaluate(placeOf)) === 'inside')
+  const movedIn = await wait(async () => (await dialog.evaluate(placeOf)) === 'inside', timeout)
   if (!movedIn) await escape('modal-walk/focus-does-not-move-in', `focus stayed outside the dialog when it opened, on ${await activeLabel()}`)
 
   const stops = await dialog.evaluate(focusFirst)
@@ -305,24 +305,24 @@ export async function walkModal(opener: Locator, options: ModalWalkOptions = {})
   if (!stillOpen) return findings
 
   if ((await dialog.evaluate(placeOf)) !== 'inside') await dialog.evaluate(focusFirst)
+  const closes = async () => {
+    await animationsSettled(frame)
+    return wait(async () => (await dialog.evaluate(placeOf)) === 'closed', timeout)
+  }
   await page.keyboard.press('Escape')
-  await animationsSettled(frame)
-  if ((await dialog.evaluate(placeOf)) !== 'closed') {
+  if (!(await closes())) {
     await report(dialog, 'modal-walk/escape-does-not-close', 'Escape does not close it. If no control inside closes it either, focus is trapped')
     const close = options.close ? await options.close.elementHandle() : null
     if (!close) return findings
-    if (await focusOn(close)) {
-      await page.keyboard.press('Enter')
-      await animationsSettled(frame)
-    }
-    if ((await dialog.evaluate(placeOf)) !== 'closed') {
+    if (await focusOn(close)) await page.keyboard.press('Enter')
+    if (!(await closes())) {
       await report(dialog, 'modal-walk/close-control-does-not-close', 'neither Escape nor the named close control closes it')
       return findings
     }
   }
 
   const expected = options.returnTo ? await options.returnTo.elementHandle() : openerHandle
-  const returned = await wait(async () => (await expected?.evaluate(isActiveInPage)) ?? false)
+  const returned = await wait(async () => (await expected?.evaluate(isActiveInPage)) ?? false, timeout)
   if (!returned) {
     await report(
       openerHandle,

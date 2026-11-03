@@ -1,7 +1,7 @@
 import { expect as baseExpect, test, type ExpectMatcherState, type Locator, type Page } from '@playwright/test'
 
 import { findUntiedErrors, type ErrorAssociationOptions } from './error-association.js'
-import { findExpandedStateMismatches } from './expanded-state.js'
+import { findExpandedStateMismatches, type ExpandedStateOptions } from './expanded-state.js'
 import { walkModal, type ModalWalkOptions } from './modal-walk.js'
 import type { Finding } from './types.js'
 
@@ -50,9 +50,13 @@ function result(name: string, state: ExpectMatcherState, findings: Finding[], op
 }
 
 export const matchers = {
-  async toHaveTruthfulExpandedState(this: ExpectMatcherState, received: Page | Locator, options: MatcherOptions = {}) {
+  async toHaveTruthfulExpandedState(
+    this: ExpectMatcherState,
+    received: Page | Locator,
+    options: Pick<ExpandedStateOptions, 'timeout'> & MatcherOptions = {},
+  ) {
     const { page, within } = scope(received)
-    const findings = await findExpandedStateMismatches(page, { within })
+    const findings = await findExpandedStateMismatches(page, { within, timeout: options.timeout })
     return result('toHaveTruthfulExpandedState', this, findings, options)
   },
 

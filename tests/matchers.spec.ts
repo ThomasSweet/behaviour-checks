@@ -51,3 +51,11 @@ test('toHaveErrorsTiedToFields passes before a submit and fails the planted form
   await page.goto('/errors/fail.html')
   await expect(page.locator('form')).not.toHaveErrorsTiedToFields()
 })
+
+test('toHaveTruthfulExpandedState waits for a slow toggle, and takes a timeout', async ({ page }) => {
+  await page.goto('/expanded-state/slow.html')
+  await expect(page.locator('#together')).toHaveTruthfulExpandedState()
+
+  await page.goto('/expanded-state/slow.html?delay=1000')
+  await expect(page.locator('#together')).not.toHaveTruthfulExpandedState({ timeout: 100, warnings: 'fail' })
+})

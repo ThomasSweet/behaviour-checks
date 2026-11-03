@@ -299,3 +299,31 @@ test('behind a native modal, a carousel stop stays a browser bug even when the p
   await page.goto('/modal/warn-carousel-guarded.html')
   carouselBug(await walkModal(page.locator('#open')), browserName, '#dialog')
 })
+
+test('a modal that opens and closes late is walked to the end', async ({ page }) => {
+  await page.goto('/modal/slow.html?open=300&close=300')
+  const findings = await walkModal(page.locator('#open'))
+  expect(findings, detail(findings)).toEqual([])
+})
+
+test('a slow close no longer hides a focus return fault', async ({ page }) => {
+  await page.goto('/modal/slow.html?close=300&return=no')
+  const findings = await walkModal(page.locator('#open'))
+  expect(summary(findings), detail(findings)).toEqual(['modal-walk/focus-does-not-return failure 2.4.3 #open'])
+})
+
+test('timeout sets how long a press is given: past it nothing opened, and a longer one walks the dialog', async ({ page }) => {
+  await page.goto('/modal/slow.html?open=1000')
+  const short = await walkModal(page.locator('#open'), { timeout: 100 })
+  expect(summary(short), detail(short)).toEqual(['modal-walk/no-dialog-opens failure  #open'])
+
+  await page.goto('/modal/slow.html?open=1500&close=1500')
+  const long = await walkModal(page.locator('#open'), { timeout: 3000 })
+  expect(long, detail(long)).toEqual([])
+})
+
+test('timeout also limits the wait for Escape', async ({ page }) => {
+  await page.goto('/modal/slow.html?close=1000')
+  const findings = await walkModal(page.locator('#open'), { timeout: 100 })
+  expect(summary(findings), detail(findings)).toEqual(['modal-walk/escape-does-not-close warning 2.1.2 #dialog'])
+})

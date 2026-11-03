@@ -38,6 +38,17 @@ export async function rootsOf(page: Page, within: Locator | undefined, timeout =
   return within.elementHandles()
 }
 
+export const pressTimeout = 1000
+
+export async function wait(until: () => Promise<boolean>, timeout = pressTimeout) {
+  const deadline = Date.now() + timeout
+  while (Date.now() < deadline) {
+    if (await until()) return true
+    await new Promise((resolve) => setTimeout(resolve, 50))
+  }
+  return until()
+}
+
 export async function focusSettled(frame: Frame, timeout = 2000) {
   let last = ''
   const deadline = Date.now() + timeout

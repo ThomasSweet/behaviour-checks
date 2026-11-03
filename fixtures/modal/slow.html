@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modal walk: a dialog that reacts late</title>
+    <style>
+      #dialog {
+        position: fixed;
+        inset: 20%;
+        background: white;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>A dialog that reacts late</h1>
+      <button id="open" type="button">Open the dialog</button>
+      <a href="#open">A link behind it</a>
+      <div id="dialog" role="dialog" aria-modal="true" aria-label="Late" hidden>
+        <button id="one" type="button">One</button>
+        <button id="close" type="button">Close</button>
+      </div>
+    </main>
+    <script>
+      const query = new URLSearchParams(location.search)
+      const opensAfter = Number(query.get('open') ?? 0)
+      const closesAfter = Number(query.get('close') ?? 0)
+      const givesFocusBack = query.get('return') !== 'no'
+      const dialog = document.getElementById('dialog')
+      const opener = document.getElementById('open')
+      const one = document.getElementById('one')
+      const close = document.getElementById('close')
+
+      opener.addEventListener('click', () =>
+        setTimeout(() => {
+          dialog.hidden = false
+          one.focus()
+        }, opensAfter),
+      )
+      dialog.addEventListener('keydown', (event) => {
+        if (event.key === 'Tab') {
+          event.preventDefault()
+          ;(document.activeElement === one ? close : one).focus()
+        }
+        if (event.key === 'Escape') {
+          setTimeout(() => {
+            dialog.hidden = true
+            if (givesFocusBack) opener.focus()
+          }, closesAfter)
+        }
+      })
+    </script>
+  </body>
+</html>
